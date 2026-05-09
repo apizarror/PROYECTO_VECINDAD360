@@ -1,0 +1,21 @@
+import type { Incidencia, TareaProgramada } from "@/types";
+
+export const incidencias: Incidencia[] = [
+  { id: "in1", titulo: "Fuga de agua en pasillo Bloque A", descripcion: "Tubería rota en el pasillo del 3er piso. Agua filtrándose hacia el 2do piso.", ubicacion: "Bloque A - Piso 3", prioridad: "Crítica", categoria: "Plomería", reportadaPor: "Luis García", asignadaA: "Miguel Castro", fechaReporte: "2026-05-02", estado: "En proceso" },
+  { id: "in2", titulo: "Ascensor bloque B detenido", descripcion: "Ascensor no responde en ningún piso. Posible falla eléctrica.", ubicacion: "Bloque B - Ascensor 1", prioridad: "Alta", categoria: "Eléctrica", reportadaPor: "María Torres", asignadaA: "Miguel Castro", fechaReporte: "2026-05-01", fechaCierre: "2026-05-02", estado: "Resuelta" },
+  { id: "in3", titulo: "Bombilla quemada en pasillo", descripcion: "Bombilla del pasillo principal del Bloque C fundida.", ubicacion: "Bloque C - Pasillo principal", prioridad: "Baja", categoria: "Eléctrica", reportadaPor: "Roberto Díaz", asignadaA: "Miguel Castro", fechaReporte: "2026-05-03", estado: "Abierta" },
+  { id: "in4", titulo: "Portón de garaje no abre", descripcion: "El portón automático del estacionamiento no responde al control remoto.", ubicacion: "Estacionamiento Sótano", prioridad: "Alta", categoria: "Mecánica", reportadaPor: "Carlos Ruiz", asignadaA: "Miguel Castro", fechaReporte: "2026-04-28", fechaCierre: "2026-04-29", estado: "Cerrada" },
+  { id: "in5", titulo: "Gotera en sala de reuniones", descripcion: "Se filtra agua del techo cuando llueve. Mancha visible en el cielorraso.", ubicacion: "Sala de Reuniones", prioridad: "Media", categoria: "Plomería", reportadaPor: "Jorge Mendoza", asignadaA: "Miguel Castro", fechaReporte: "2026-05-03", estado: "Abierta" },
+  { id: "in6", titulo: "Cerradura rota en gimnasio", descripcion: "La cerradura electrónica no reconoce los stickers de acceso.", ubicacion: "Gimnasio", prioridad: "Media", categoria: "Cerrajería", reportadaPor: "Ana Quispe", asignadaA: "Carlos Ruiz", fechaReporte: "2026-04-30", estado: "En proceso" },
+  { id: "in7", titulo: "Cámara de seguridad fuera de línea", descripcion: "Cámara 3 del perímetro no transmite señal desde ayer.", ubicacion: "Perímetro norte", prioridad: "Alta", categoria: "Seguridad", reportadaPor: "Jorge Ramírez", asignadaA: "Carlos Ruiz", fechaReporte: "2026-05-03", estado: "Abierta" },
+];
+
+export const tareasProgramadas: TareaProgramada[] = [
+  { id: "t1", titulo: "Limpieza de pasillos", descripcion: "Aspirado y trapeado de todos los pasillos comunes.", asignadaA: "Rosa Huamán", frecuencia: "Diaria", proximaEjecucion: "2026-05-04 07:00", ultimaEjecucion: "2026-05-03 07:00", estado: "Completada" },
+  { id: "t2", titulo: "Limpieza de áreas comunes", descripcion: "Limpieza profunda de lobby, sala de reuniones y gimnasio.", asignadaA: "Rosa Huamán", frecuencia: "Semanal", proximaEjecucion: "2026-05-05 07:00", ultimaEjecucion: "2026-04-28 07:00", estado: "Pendiente" },
+  { id: "t3", titulo: "Mantenimiento de ascensores", descripcion: "Revisión técnica mensual de ascensores según normativa.", asignadaA: "Miguel Castro", frecuencia: "Mensual", proximaEjecucion: "2026-05-10 08:00", ultimaEjecucion: "2026-04-10 08:00", estado: "Pendiente" },
+  { id: "t4", titulo: "Fumigación general", descripcion: "Fumigación de todos los ambientes comunes y sótanos.", asignadaA: "Empresa externa - Fumigax", frecuencia: "Mensual", proximaEjecucion: "2026-05-15 06:00", ultimaEjecucion: "2026-04-15 06:00", estado: "Pendiente" },
+  { id: "t5", titulo: "Riego de jardines", descripcion: "Riego programado de jardines y áreas verdes.", asignadaA: "Miguel Castro", frecuencia: "Diaria", proximaEjecucion: "2026-05-04 06:00", estado: "Pendiente" },
+  { id: "t6", titulo: "Recolección de basura por pisos", descripcion: "Recorrido por cada piso para recolección de residuos.", asignadaA: "Rosa Huamán", frecuencia: "Diaria", proximaEjecucion: "2026-05-04 20:00", ultimaEjecucion: "2026-05-03 20:00", estado: "Vencida" },
+  { id: "t7", titulo: "Cambio de filtros de agua", descripcion: "Reemplazo de filtros del sistema de agua potable. Cronograma del fabricante.", asignadaA: "Miguel Castro", frecuencia: "Cron", proximaEjecucion: "2026-05-20 09:00", estado: "Pendiente" },
+];

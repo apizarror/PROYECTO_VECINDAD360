@@ -1,0 +1,37 @@
+import type { CuentaBancaria, Presupuesto, Egreso, Ingreso } from "@/types";
+
+export const cuentasBancarias: CuentaBancaria[] = [
+  { id: "cb1", banco: "BCP", tipo: "Corriente", moneda: "PEN", numeroCuenta: "****-****-1234", cci: "002-194-000001234567-01", titular: "Edificio Principal SAC", saldoInicial: 15000, saldoActual: 24850, estado: "Activa" },
+  { id: "cb2", banco: "BBVA", tipo: "Ahorros", moneda: "PEN", numeroCuenta: "****-****-5678", cci: "011-194-000005678901-02", titular: "Edificio Principal SAC", saldoInicial: 8000, saldoActual: 12230, estado: "Activa" },
+  { id: "cb3", banco: "Interbank", tipo: "Detracción", moneda: "PEN", numeroCuenta: "****-****-9012", cci: "003-194-000009012345-03", titular: "Edificio Principal SAC", saldoInicial: 5000, saldoActual: 5000, estado: "Activa" },
+  { id: "cb4", banco: "Scotiabank", tipo: "Ahorros", moneda: "USD", numeroCuenta: "****-****-3456", cci: "009-194-000003456789-04", titular: "Edificio Principal SAC", saldoInicial: 2000, saldoActual: 2000, estado: "Inactiva" },
+];
+
+export const presupuestos: Presupuesto[] = [
+  { id: "p1", ano: 2026, rubroId: "g1", rubroNombre: "Servicios Básicos", montoPresupuestado: 12000, montoEjecutado: 3200, avance: 27, observaciones: "Ejecución dentro de lo esperado para Q1" },
+  { id: "p2", ano: 2026, rubroId: "g2", rubroNombre: "Mantenimiento", montoPresupuestado: 25000, montoEjecutado: 8200, avance: 33, observaciones: "Incluye pintura de fachada programada para julio" },
+  { id: "p3", ano: 2026, rubroId: "g3", rubroNombre: "Personal", montoPresupuestado: 48000, montoEjecutado: 16000, avance: 33, observaciones: "Salarios mensuales regulares" },
+  { id: "p4", ano: 2026, rubroId: "g4", rubroNombre: "Administrativos", montoPresupuestado: 8000, montoEjecutado: 1608, avance: 20, observaciones: "Software + gastos bancarios" },
+  { id: "p5", ano: 2026, rubroId: "g5", rubroNombre: "Fondos y Reservas", montoPresupuestado: 10000, montoEjecutado: 900, avance: 9, observaciones: "Fondo de contingencia acumulándose" },
+];
+
+export const egresos: Egreso[] = [
+  { id: "eg1", concepto: "Pago de jardinería - Mayo 2026", monto: 350, categoria: "Mantenimiento", proveedor: "GreenGardens SAC", cuentaBancariaId: "cb1", cuentaBancariaNombre: "BCP Corriente", metodoPago: "Transferencia", fechaRegistro: "2026-05-02", fechaPago: "2026-05-02", descripcion: "Mantenimiento mensual de jardines", estado: "Pagado", registradoPor: "Carlos Ruiz" },
+  { id: "eg2", concepto: "Fumigación trimestral", monto: 600, categoria: "Mantenimiento", proveedor: "Fumigax Perú", cuentaBancariaId: "cb1", cuentaBancariaNombre: "BCP Corriente", metodoPago: "Yape", fechaRegistro: "2026-05-03", fechaPago: "2026-05-03", descripcion: "Fumigación de áreas comunes y sótanos", estado: "Pagado", registradoPor: "Carlos Ruiz" },
+  { id: "eg3", concepto: "Recibo de Sedapal - Mayo 2026", monto: 2840, categoria: "Servicios Básicos", proveedor: "Sedapal", cuentaBancariaId: "cb1", cuentaBancariaNombre: "BCP Corriente", metodoPago: "Transferencia", fechaRegistro: "2026-05-05", fechaPago: "", descripcion: "Consumo de agua de todo el condominio", estado: "Pendiente", registradoPor: "Carlos Ruiz" },
+  { id: "eg4", concepto: "Salario vigilancia - Mayo", monto: 2500, categoria: "Personal", proveedor: "Seguridad Total SAC", cuentaBancariaId: "cb2", cuentaBancariaNombre: "BBVA Ahorros", metodoPago: "Transferencia", fechaRegistro: "2026-05-01", fechaPago: "", descripcion: "Servicio de vigilancia 24/7", estado: "Pendiente", registradoPor: "Carlos Ruiz" },
+  { id: "eg5", concepto: "Compra de herramientas", monto: 180, categoria: "Mantenimiento", proveedor: "Ferretería Central", cuentaBancariaId: "cb2", cuentaBancariaNombre: "BBVA Ahorros", metodoPago: "Efectivo", fechaRegistro: "2026-04-28", fechaPago: "2026-04-28", descripcion: "Martillos, taladros para reparaciones", estado: "Pagado", registradoPor: "Carlos Ruiz" },
+  { id: "eg6", concepto: "Internet común - Mayo 2026", monto: 250, categoria: "Servicios Básicos", proveedor: "Telefónica del Perú", cuentaBancariaId: "cb1", cuentaBancariaNombre: "BCP Corriente", metodoPago: "Plin", fechaRegistro: "2026-05-04", fechaPago: "2026-05-04", descripcion: "Conexión de fibra óptica para áreas comunes", estado: "Pagado", registradoPor: "Carlos Ruiz" },
+  { id: "eg7", concepto: "Pintura pasillo bloque B", monto: 1200, categoria: "Mantenimiento", proveedor: "ColorMax Perú", cuentaBancariaId: "cb1", cuentaBancariaNombre: "BCP Corriente", metodoPago: "Transferencia", fechaRegistro: "2026-05-06", fechaPago: "", descripcion: "Reparación de pintura por humedad", estado: "Pendiente", registradoPor: "Carlos Ruiz" },
+];
+
+export const ingresos: Ingreso[] = [
+  { id: "in1", concepto: "Cuota ordinaria - Dpto 101", monto: 350, origen: "Cuota", residenteId: "r1", residenteNombre: "Luis García", inmuebleId: "i1", inmuebleLabel: "Dpto 101 - Torre Sol", cuentaBancariaId: "cb1", cuentaBancariaNombre: "BCP Corriente", metodoPago: "Yape", fecha: "2026-05-01", estado: "Confirmado", registradoPor: "Carlos Ruiz" },
+  { id: "in2", concepto: "Cuota ordinaria - Dpto 201", monto: 350, origen: "Cuota", residenteId: "r3", residenteNombre: "Jorge Mendoza", inmuebleId: "i3", inmuebleLabel: "Dpto 201 - Torre Sol", cuentaBancariaId: "cb1", cuentaBancariaNombre: "BCP Corriente", metodoPago: "Plin", fecha: "2026-05-02", estado: "Confirmado", registradoPor: "Carlos Ruiz" },
+  { id: "in3", concepto: "Cuota ordinaria - Dpto 102", monto: 380, origen: "Cuota", residenteId: "r2", residenteNombre: "María Torres", inmuebleId: "i2", inmuebleLabel: "Dpto 102 - Torre Sol", cuentaBancariaId: "cb2", cuentaBancariaNombre: "BBVA Ahorros", metodoPago: "Transferencia", fecha: "2026-05-03", estado: "Pendiente", registradoPor: "Carlos Ruiz" },
+  { id: "in4", concepto: "Pago de multa - Ruido", monto: 150, origen: "Multa", residenteId: "r5", residenteNombre: "Ana Quispe", inmuebleId: "i5", inmuebleLabel: "Dpto 301 - Torre Sol", cuentaBancariaId: "cb1", cuentaBancariaNombre: "BCP Corriente", metodoPago: "Yape", fecha: "2026-05-04", estado: "Confirmado", registradoPor: "Carlos Ruiz" },
+  { id: "in5", concepto: "Reserva parrilla - Dpto 501", monto: 80, origen: "Reserva", residenteId: "r9", residenteNombre: "Roberto Díaz", inmuebleId: "i9", inmuebleLabel: "Dpto 501 - Bloque C", cuentaBancariaId: "cb2", cuentaBancariaNombre: "BBVA Ahorros", metodoPago: "Tarjeta", fecha: "2026-05-05", estado: "Confirmado", registradoPor: "Carlos Ruiz" },
+  { id: "in6", concepto: "Cuota ordinaria - Dpto 101 Bloque B", monto: 400, origen: "Cuota", residenteId: "r7", residenteNombre: "Carlos Ruiz", inmuebleId: "i7", inmuebleLabel: "Dpto 101 - Bloque B", cuentaBancariaId: "cb1", cuentaBancariaNombre: "BCP Corriente", metodoPago: "Plin", fecha: "2026-05-05", estado: "Confirmado", registradoPor: "Carlos Ruiz" },
+  { id: "in7", concepto: "Cuota ordinaria - Dpto 302", monto: 320, origen: "Cuota", residenteId: "r6", residenteNombre: "Pedro Sánchez", inmuebleId: "i6", inmuebleLabel: "Dpto 302 - Torre Sol", cuentaBancariaId: "cb1", cuentaBancariaNombre: "BCP Corriente", metodoPago: "Transferencia", fecha: "2026-05-06", estado: "Pendiente", registradoPor: "Carlos Ruiz" },
+  { id: "in8", concepto: "Donación para decoración navideña", monto: 500, origen: "Donación", cuentaBancariaId: "cb2", cuentaBancariaNombre: "BBVA Ahorros", metodoPago: "Transferencia", fecha: "2026-04-30", estado: "Confirmado", registradoPor: "Carlos Ruiz" },
+];

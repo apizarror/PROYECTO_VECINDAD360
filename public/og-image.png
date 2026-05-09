@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#1E40AF"/>
+  <rect x="80" y="80" width="1040" height="470" rx="32" fill="#2563EB" opacity="0.5"/>
+  <text x="180" y="260" font-family="Inter,system-ui,sans-serif" font-size="72" font-weight="800" fill="#FFFFFF">EdifiPro</text>
+  <text x="180" y="340" font-family="Inter,system-ui,sans-serif" font-size="36" fill="#FB923C" opacity="0.9">Gestión Inteligente de Condominios</text>
+  <text x="180" y="420" font-family="Inter,system-ui,sans-serif" font-size="22" fill="#93C5FD">Un edificio. Una plataforma.</text>
+  <circle cx="1000" cy="240" r="120" fill="#F97316" opacity="0.3"/>
+  <circle cx="1020" cy="220" r="80" fill="#F97316" opacity="0.5"/>
+  <text x="1000" y="255" font-family="Inter,system-ui,sans-serif" font-size="48" font-weight="800" fill="#FFFFFF" text-anchor="middle">EP</text>
+</svg>
