@@ -76,9 +76,9 @@ export default function IngresosPage() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-surface-400" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar..."
-            className="w-full max-w-xs pl-10 pr-4 py-2.5 rounded-xl border border-surface-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20" />
+            className="w-full sm:max-w-xs pl-10 pr-4 py-2.5 rounded-xl border border-surface-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20" />
         </div>
-        <div className="flex gap-1 p-1 bg-surface-100 rounded-xl">
+        <div className="flex gap-1 p-1 bg-surface-100 rounded-xl flex-wrap">
           {["Todos", "Cuota", "Multa", "Reserva", "Donación", "Otro"].map(o => (
             <button key={o} onClick={() => setOrigenFilter(o)} className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-all", origenFilter === o ? "bg-white text-primary-700 shadow-sm" : "text-surface-500 hover:text-surface-700")}>{o}</button>
           ))}
@@ -117,7 +117,7 @@ export default function IngresosPage() {
                       i.estado === "Confirmado" ? "bg-green-50 text-green-700" : i.estado === "Pendiente" ? "bg-amber-50 text-amber-700" : "bg-surface-100 text-surface-500")}>{i.estado}</span>
                   </td>
                   <td className="px-5 py-3">
-                    <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex gap-0.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                       <button onClick={() => setForm({ mode: "edit", item: i })} className="p-1 rounded text-surface-400 hover:text-primary-600"><Edit className="h-3.5 w-3.5" /></button>
                       <button onClick={() => setDeleteTarget(i)} className="p-1 rounded text-surface-400 hover:text-red-600"><Trash2 className="h-3.5 w-3.5" /></button>
                     </div>

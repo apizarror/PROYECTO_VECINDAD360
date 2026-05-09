@@ -52,8 +52,8 @@ export function HeroCarousel({ slides, interval = 5000 }: HeroCarouselProps) {
             key={i}
             onClick={() => setCurrent(i)}
             aria-label={`Slide ${i + 1} de ${slides.length}`}
-            className={`h-2 rounded-full transition-all duration-500 ${
-              i === current ? "bg-white w-8" : "bg-white/35 hover:bg-white/55 w-2"
+            className={`h-3 rounded-full transition-all duration-500 ${
+              i === current ? "bg-white w-8" : "bg-white/35 hover:bg-white/55 w-3"
             }`}
           />
         ))}

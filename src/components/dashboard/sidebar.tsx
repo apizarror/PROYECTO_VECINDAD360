@@ -271,7 +271,7 @@ export function Sidebar({
                                   <Link
                                     href={sub.href}
                                     className={cn(
-                                      "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors",
+                                      "flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-colors",
                                       isSubActive(sub.href)
                                         ? "bg-primary-50 text-primary-700 font-medium"
                                         : "text-surface-500 hover:text-surface-700 hover:bg-surface-50"
@@ -318,7 +318,7 @@ export function Sidebar({
       <div className="border-t border-surface-200 p-3">
         <button
           onClick={onToggleCollapse}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-surface-400 hover:text-surface-600 hover:bg-surface-50 transition-colors text-sm"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-surface-400 hover:text-surface-600 hover:bg-surface-50 transition-colors text-sm"
         >
           {collapsed ? (
             <ChevronRight className="h-4 w-4" />

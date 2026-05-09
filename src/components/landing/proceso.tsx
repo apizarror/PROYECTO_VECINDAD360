@@ -56,7 +56,7 @@ export function Proceso() {
         <div className="relative">
           <div className="hidden md:block absolute top-12 left-[calc(16.67%+40px)] right-[calc(16.67%+40px)] h-0.5 bg-surface-200" />
 
-          <div className="flex flex-col md:flex-row items-start gap-8">
+          <div className="flex flex-col md:flex-row items-start gap-6 md:gap-8">
             {steps.map((step, i) => (
               <motion.div
                 key={step.number}
@@ -65,13 +65,13 @@ export function Proceso() {
                 transition={{ duration: 0.5, delay: i * 0.2 }}
                 className="flex-1 flex flex-col items-center text-center relative z-10"
               >
-                <div className="w-20 h-20 rounded-full bg-primary-600 text-white flex items-center justify-center font-extrabold text-xl mb-5 shadow-lg shadow-primary-500/30">
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-primary-600 text-white flex items-center justify-center font-extrabold text-xl mb-5 shadow-lg shadow-primary-500/30">
                   <step.icon className="h-8 w-8" />
                 </div>
                 <div className="text-xs font-bold text-primary-500 mb-2">
                   PASO {step.number}
                 </div>
-                <h3 className="font-bold text-xl text-surface-800 mb-3">
+                <h3 className="font-bold text-lg md:text-xl text-surface-800 mb-3">
                   {step.title}
                 </h3>
                 <p className="text-sm text-surface-500 leading-relaxed max-w-xs">

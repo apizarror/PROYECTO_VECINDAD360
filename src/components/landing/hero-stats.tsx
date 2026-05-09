@@ -45,7 +45,7 @@ function StatCard({
       className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl p-5 flex flex-col items-center text-center gap-2 hover:bg-white/15 transition-colors"
     >
       <Icon className={`h-7 w-7 ${color}`} />
-      <div className="text-3xl font-extrabold text-white tabular-nums">
+      <div className="text-2xl sm:text-3xl font-extrabold text-white tabular-nums">
         <motion.span>{displayValue}</motion.span>
         {suffix}
       </div>

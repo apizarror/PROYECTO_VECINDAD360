@@ -16,7 +16,7 @@ export function About() {
     <section className="py-20 px-4 bg-surface-50 relative overflow-hidden" ref={ref}>
       <DotsPattern className="absolute inset-0 w-full h-full text-primary-200" />
       <div className="max-w-6xl mx-auto relative z-10">
-        <div className="flex flex-col md:flex-row items-center gap-12 md:gap-16">
+        <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16">
           {/* Left: Illustration */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
@@ -25,7 +25,7 @@ export function About() {
             className="flex-1 flex justify-center"
           >
             <div className="relative">
-              <BuildingIllustration className="w-72 h-auto" />
+              <BuildingIllustration className="w-full max-w-[288px] h-auto" />
             </div>
           </motion.div>
 
@@ -48,12 +48,12 @@ export function About() {
             <div className="w-16 h-1 rounded-full bg-accent-500" />
 
             <div className="space-y-4">
-              <p className="text-lg text-surface-600 leading-relaxed">
+              <p className="text-base md:text-lg text-surface-600 leading-relaxed">
                 Vecindad360 nació de la frustración de administradores que pasaban
                 horas en hojas de cálculo, persiguiendo pagos y lidiando con
                 residentes desinformados.
               </p>
-              <p className="text-lg text-surface-600 leading-relaxed">
+              <p className="text-base md:text-lg text-surface-600 leading-relaxed">
                 Reunimos todas las herramientas que necesitas en un solo lugar:
                 finanzas, residentes, pagos, WhatsApp y más. Para que puedas
                 enfocarte en lo que realmente importa: que tu condominio

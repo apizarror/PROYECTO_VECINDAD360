@@ -25,9 +25,9 @@ export default function MovimientoVehicularPage() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-surface-400" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por placa..."
-            className="w-full max-w-xs pl-10 pr-4 py-2.5 rounded-xl border border-surface-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20" />
+            className="w-full sm:max-w-xs pl-10 pr-4 py-2.5 rounded-xl border border-surface-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20" />
         </div>
-        <div className="flex gap-1 p-1 bg-surface-100 rounded-xl">
+        <div className="flex gap-1 p-1 bg-surface-100 rounded-xl flex-wrap">
           {["Todos", "Ingreso", "Salida"].map(t => (
             <button key={t} onClick={() => setTipoFilter(t)} className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-all", tipoFilter === t ? "bg-white text-primary-700 shadow-sm" : "text-surface-500 hover:text-surface-700")}>{t}</button>
           ))}

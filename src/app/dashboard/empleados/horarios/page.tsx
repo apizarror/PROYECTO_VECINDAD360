@@ -36,7 +36,7 @@ export default function HorariosPage() {
     <>
       <HeaderPage icon={Clock} title="Horarios" subtitle="Turnos y programación semanal" />
       <div className="bg-white rounded-2xl border border-surface-200 shadow-sm overflow-x-auto">
-        <table className="w-full min-w-[900px]">
+        <table className="w-full min-w-[600px] lg:min-w-[900px]">
           <thead>
             <tr className="border-b border-surface-100">
               <th className="px-4 py-3 text-left text-xs font-medium text-surface-400 uppercase w-[140px]">

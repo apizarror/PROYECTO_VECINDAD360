@@ -29,7 +29,7 @@ function AnimatedCounter({
   }, [inView, count, value]);
 
   return (
-    <span className="text-5xl md:text-6xl font-extrabold text-white tabular-nums">
+    <span className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-white tabular-nums">
       <motion.span>{display}</motion.span>
       {suffix}
     </span>
@@ -58,7 +58,7 @@ export function Stats() {
                 suffix={stat.suffix}
                 inView={inView}
               />
-              <span className="text-white/70 text-lg">{stat.label}</span>
+              <span className="text-white/70 text-base md:text-lg">{stat.label}</span>
             </motion.div>
           ))}
         </div>

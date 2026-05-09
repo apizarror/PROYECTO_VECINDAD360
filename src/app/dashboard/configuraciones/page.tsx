@@ -191,7 +191,7 @@ export default function ConfiguracionesPage() {
                           <p className="text-xs text-surface-400">{servicios.length} servicios</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => setGrupoForm({ mode: "edit", item: grupo })}
                           className="p-1.5 rounded-lg text-surface-400 hover:text-primary-600 hover:bg-primary-50"
@@ -238,7 +238,7 @@ export default function ConfiguracionesPage() {
                               </td>
                               <td className="px-5 py-2.5 text-sm text-surface-400 font-mono">{s.cuentaContable}</td>
                               <td className="px-5 py-2.5">
-                                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex items-center gap-0.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                   <button
                                     onClick={() => setServicioForm({ mode: "edit", item: s })}
                                     className="p-1 rounded text-surface-400 hover:text-primary-600"

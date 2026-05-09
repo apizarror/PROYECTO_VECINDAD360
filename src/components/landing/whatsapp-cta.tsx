@@ -45,7 +45,7 @@ export function WhatsAppCTA() {
           <div className="absolute top-0 right-0 w-96 h-96 bg-accent-100 rounded-bl-full opacity-40" />
           <div className="absolute bottom-0 left-0 w-72 h-72 bg-primary-100 rounded-tr-full opacity-40" />
 
-          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-5 gap-8 p-8 sm:p-12 lg:p-16">
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-5 gap-8 p-5 sm:p-8 lg:p-16">
             {/* Left content */}
             <div className="lg:col-span-3 space-y-6">
               <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 rounded-full px-4 py-1.5 text-sm font-bold border border-green-200">
@@ -56,7 +56,7 @@ export function WhatsAppCTA() {
                 Tu condominio conectado por{" "}
                 <span className="text-green-500">WhatsApp</span>
               </h2>
-              <p className="text-surface-500 text-lg leading-relaxed">
+              <p className="text-surface-500 text-base md:text-lg leading-relaxed">
                 El residente nunca abre otra app. Las alertas, pagos, consultas
                 y reportes entran por donde ya vive: WhatsApp. Tú admin, tienes
                 el control total.

@@ -40,7 +40,7 @@ export default function AuthPage() {
   return (
     <main>
       <section className="pt-32 pb-20 px-4 min-h-screen flex items-center justify-center bg-surface-50">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-surface-200 p-8">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-surface-200 p-5 sm:p-8">
           <div className="text-center mb-8">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary-600 text-white font-extrabold text-lg mb-4">
               V3
@@ -61,7 +61,7 @@ export default function AuthPage() {
               <input
                 {...register("username")}
                 className={cn(
-                  "w-full rounded-xl border border-surface-200 px-4 py-2.5 text-sm text-surface-800 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent",
+                  "w-full rounded-xl border border-surface-200 px-4 py-3 text-sm text-surface-800 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent",
                   errors.username && "border-red-400"
                 )}
                 placeholder="admin"
@@ -79,7 +79,7 @@ export default function AuthPage() {
                   {...register("password")}
                   type={showPassword ? "text" : "password"}
                   className={cn(
-                    "w-full rounded-xl border border-surface-200 px-4 py-2.5 text-sm text-surface-800 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent pr-10",
+                    "w-full rounded-xl border border-surface-200 px-4 py-3 text-sm text-surface-800 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent pr-10",
                     errors.password && "border-red-400"
                   )}
                   placeholder="••••••••"
@@ -87,7 +87,7 @@ export default function AuthPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600 p-1"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>

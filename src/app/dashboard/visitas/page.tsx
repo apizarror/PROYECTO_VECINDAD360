@@ -110,7 +110,7 @@ export default function VisitasPage() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-surface-400" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar visitante..."
-            className="w-full max-w-xs pl-10 pr-4 py-2.5 rounded-xl border border-surface-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20" />
+            className="w-full sm:max-w-xs pl-10 pr-4 py-2.5 rounded-xl border border-surface-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20" />
         </div>
         <div className="flex gap-1 p-1 bg-surface-100 rounded-xl flex-wrap">
           {estados.map(e => (
@@ -143,7 +143,7 @@ export default function VisitasPage() {
                       v.estado === "Completada" ? "bg-primary-50 text-primary-600" : "bg-red-50 text-red-700")}>{v.estado}</span>
                   </td>
                   <td className="px-5 py-3">
-                    <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex gap-0.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                       <button onClick={() => setForm({ mode: "edit", item: v })} className="p-1 rounded text-surface-400 hover:text-primary-600"><Edit className="h-3.5 w-3.5" /></button>
                       <button onClick={() => setDeleteTarget(v)} className="p-1 rounded text-surface-400 hover:text-red-600"><Trash2 className="h-3.5 w-3.5" /></button>
                     </div>

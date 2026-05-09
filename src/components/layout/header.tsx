@@ -37,7 +37,7 @@ export function Header() {
           : "bg-transparent"
       )}
     >
-      <div className="mx-auto max-w-7xl flex items-center justify-between px-6 py-3">
+      <div className="mx-auto max-w-7xl flex items-center justify-between px-4 sm:px-6 py-3">
         <Link href="/" className="flex items-center gap-2.5 font-bold text-xl text-primary-700">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-600 text-white font-extrabold text-sm shadow-md shadow-primary-500/25">
             V3
@@ -109,7 +109,7 @@ export function Header() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 bottom-0 w-[300px] bg-white z-50 shadow-2xl md:hidden flex flex-col"
+              className="fixed top-0 right-0 bottom-0 w-[85vw] max-w-[300px] bg-white z-50 shadow-2xl md:hidden flex flex-col"
             >
               <div className="flex items-center justify-between p-5 border-b border-surface-100">
                 <Link

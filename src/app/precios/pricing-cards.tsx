@@ -76,7 +76,7 @@ export function PricingCards() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: i * 0.15 }}
               className={cn(
-                "relative rounded-2xl p-8 flex flex-col",
+                "relative rounded-2xl p-5 sm:p-8 flex flex-col",
                 tier.popular
                   ? "bg-primary-600 text-white shadow-2xl shadow-primary-500/30 scale-[1.02] border-2 border-accent-400"
                   : "bg-white shadow-sm border border-surface-200"
@@ -100,7 +100,7 @@ export function PricingCards() {
                 <div className="flex items-baseline gap-1 mt-2">
                   <span
                     className={cn(
-                      "text-4xl font-extrabold",
+                      "text-3xl sm:text-4xl font-extrabold",
                       tier.popular ? "text-white" : "text-surface-800"
                     )}
                   >

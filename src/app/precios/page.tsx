@@ -15,7 +15,7 @@ export default function PreciosPage() {
       <Header />
       <main>
         <section className="pt-28 pb-16 px-4 gradient-hero text-white text-center">
-          <h1 className="text-3xl md:text-5xl font-extrabold">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold">
             Planes simples, precios claros
           </h1>
           <p className="text-white/70 mt-4 max-w-xl mx-auto text-lg">

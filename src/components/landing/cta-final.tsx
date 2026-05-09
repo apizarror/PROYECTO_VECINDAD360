@@ -24,10 +24,10 @@ export function CtaFinal() {
           transition={{ duration: 0.6 }}
           className="space-y-6"
         >
-          <h2 className="text-3xl md:text-5xl font-extrabold text-white leading-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-extrabold text-white leading-tight">
             ¿Listo para transformar tu condominio?
           </h2>
-          <p className="text-white/70 text-lg max-w-xl mx-auto">
+          <p className="text-white/70 text-base md:text-lg max-w-xl mx-auto">
             Únete a más de 120 condominios que ya confían en Vecindad360. Empieza
             gratis, sin compromisos.
           </p>

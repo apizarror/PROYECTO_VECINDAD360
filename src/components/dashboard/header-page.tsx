@@ -17,7 +17,7 @@ export function HeaderPage({ icon: Icon, title, subtitle, children, className }:
           <Icon className="h-6 w-6" />
         </div>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-surface-800 leading-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-surface-800 leading-tight">
             {title}
           </h1>
           {subtitle && (

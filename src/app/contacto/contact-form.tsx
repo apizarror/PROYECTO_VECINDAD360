@@ -67,7 +67,7 @@ export function ContactForm() {
   return (
     <section className="py-20 px-4 bg-surface-50">
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-2xl p-8 shadow-sm border border-surface-200">
+        <div className="bg-white rounded-2xl p-4 sm:p-8 shadow-sm border border-surface-200">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
@@ -77,7 +77,7 @@ export function ContactForm() {
                 <input
                   {...register("name")}
                   className={cn(
-                    "w-full rounded-xl border border-surface-200 px-4 py-2.5 text-sm text-surface-800 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition",
+                    "w-full rounded-xl border border-surface-200 px-4 py-3 text-sm text-surface-800 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition",
                     errors.name && "border-red-400 focus:ring-red-400"
                   )}
                   placeholder="Tu nombre completo"
@@ -96,7 +96,7 @@ export function ContactForm() {
                   {...register("email")}
                   type="email"
                   className={cn(
-                    "w-full rounded-xl border border-surface-200 px-4 py-2.5 text-sm text-surface-800 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition",
+                    "w-full rounded-xl border border-surface-200 px-4 py-3 text-sm text-surface-800 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition",
                     errors.email && "border-red-400 focus:ring-red-400"
                   )}
                   placeholder="tu@email.com"
@@ -117,7 +117,7 @@ export function ContactForm() {
                 <input
                   {...register("condominio")}
                   className={cn(
-                    "w-full rounded-xl border border-surface-200 px-4 py-2.5 text-sm text-surface-800 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition",
+                    "w-full rounded-xl border border-surface-200 px-4 py-3 text-sm text-surface-800 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition",
                     errors.condominio && "border-red-400 focus:ring-red-400"
                   )}
                   placeholder="Nombre del condominio"
@@ -135,7 +135,7 @@ export function ContactForm() {
                 <select
                   {...register("unidades")}
                   className={cn(
-                    "w-full rounded-xl border border-surface-200 px-4 py-2.5 text-sm text-surface-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition bg-white",
+                    "w-full rounded-xl border border-surface-200 px-4 py-3 text-sm text-surface-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition bg-white",
                     errors.unidades && "border-red-400 focus:ring-red-400"
                   )}
                 >
@@ -162,7 +162,7 @@ export function ContactForm() {
                 {...register("mensaje")}
                 rows={4}
                 className={cn(
-                  "w-full rounded-xl border border-surface-200 px-4 py-2.5 text-sm text-surface-800 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition resize-none",
+                  "w-full rounded-xl border border-surface-200 px-4 py-3 text-sm text-surface-800 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition resize-none",
                   errors.mensaje && "border-red-400 focus:ring-red-400"
                 )}
                 placeholder="Cuéntanos sobre tu condominio y qué necesitas..."

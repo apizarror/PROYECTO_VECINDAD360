@@ -97,10 +97,10 @@ export default function TareasPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar..."
-            className="w-full max-w-xs pl-10 pr-4 py-2.5 rounded-xl border border-surface-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+            className="w-full sm:max-w-xs pl-10 pr-4 py-2.5 rounded-xl border border-surface-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
           />
         </div>
-        <div className="flex gap-1 p-1 bg-surface-100 rounded-xl">
+        <div className="flex gap-1 p-1 bg-surface-100 rounded-xl flex-wrap">
           {(["Todas", "Pendiente", "En progreso", "Completada", "Vencida"] as const).map((e) => (
             <button
               key={e}
@@ -161,7 +161,7 @@ export default function TareasPage() {
                     </span>
                   </td>
                   <td className="px-5 py-3">
-                    <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex gap-0.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => setForm({ mode: "edit", item: t })}
                         className="p-1 rounded text-surface-400 hover:text-primary-600"

@@ -42,10 +42,10 @@ export function PagosSection() {
 
   return (
     <section className="py-20 px-4 bg-white relative overflow-hidden">
-      <BlobDecoration className="absolute -top-40 -left-32 w-96 h-96 text-primary-50" />
-      <BlobDecoration className="absolute -bottom-32 -right-24 w-80 h-80 text-accent-50" />
+      <BlobDecoration className="absolute -top-40 -left-32 w-96 h-96 text-primary-50 hidden sm:block" />
+      <BlobDecoration className="absolute -bottom-32 -right-24 w-80 h-80 text-accent-50 hidden sm:block" />
       <div className="max-w-7xl mx-auto relative z-10" ref={ref}>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
           {/* Left: Content */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -64,7 +64,7 @@ export function PagosSection() {
                 <Image src="/plin.png" alt="Plin" width={80} height={36} className="h-7 md:h-10 w-auto inline-block align-middle" />{" "}
                 y lo que prefieran
               </h2>
-              <p className="text-surface-500 text-lg mt-4 leading-relaxed">
+              <p className="text-surface-500 text-base md:text-lg mt-4 leading-relaxed">
                 Integramos los medios de pago más usados en Perú y Latinoamérica.
                 Menos fricción, menos morosidad, más felicidad. Tu comunidad paga
                 en segundos desde el celular.
@@ -106,7 +106,7 @@ export function PagosSection() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="flex flex-col items-center gap-8"
           >
-            <div className="w-full max-w-md bg-surface-50 rounded-3xl p-8 border border-surface-200 shadow-lg">
+            <div className="w-full max-w-md bg-surface-50 rounded-3xl p-5 sm:p-8 border border-surface-200 shadow-lg">
               <div className="text-center space-y-2 mb-6">
                 <p className="text-sm text-surface-400 font-medium">Aceptamos todos los medios</p>
                 <p className="text-3xl font-extrabold text-surface-800">$450.00</p>

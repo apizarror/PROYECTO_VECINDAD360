@@ -37,17 +37,17 @@ export default function CargosServicioPage() {
           <input
             type="text" value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar inmueble..."
-            className="w-full max-w-xs pl-10 pr-4 py-2.5 rounded-xl border border-surface-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+            className="w-full sm:max-w-xs pl-10 pr-4 py-2.5 rounded-xl border border-surface-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
           />
         </div>
-        <div className="flex gap-1 p-1 bg-surface-100 rounded-xl">
+        <div className="flex gap-1 p-1 bg-surface-100 rounded-xl flex-wrap">
           {periodos.map((p) => (
             <button key={p} onClick={() => setPeriodoFilter(p)} className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-all", periodoFilter === p ? "bg-white text-primary-700 shadow-sm" : "text-surface-500 hover:text-surface-700")}>
               {p}
             </button>
           ))}
         </div>
-        <div className="flex gap-1 p-1 bg-surface-100 rounded-xl">
+        <div className="flex gap-1 p-1 bg-surface-100 rounded-xl flex-wrap">
           {servicios.map((s) => (
             <button key={s} onClick={() => setServicioFilter(s)} className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-all", servicioFilter === s ? "bg-white text-primary-700 shadow-sm" : "text-surface-500 hover:text-surface-700")}>
               {s}

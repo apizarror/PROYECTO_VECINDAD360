@@ -56,7 +56,7 @@ export default function CargosTotalesPage() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-surface-400" />
           <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por inmueble o residente..."
-            className="w-full max-w-xs pl-10 pr-4 py-2.5 rounded-xl border border-surface-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20" />
+            className="w-full sm:max-w-xs pl-10 pr-4 py-2.5 rounded-xl border border-surface-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20" />
         </div>
       </div>
 
@@ -77,7 +77,7 @@ export default function CargosTotalesPage() {
                     <p className="text-xs text-surface-400">{resumen.residenteNombre}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-6 text-right">
+                <div className="flex items-center gap-3 sm:gap-6 text-right">
                   <div>
                     <p className="text-[10px] text-surface-400 uppercase">Pendiente</p>
                     <p className={cn("text-sm font-bold tabular-nums", resumen.saldoPendiente > 0 ? "text-red-600" : "text-green-600")}>

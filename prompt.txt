@@ -1,0 +1,217 @@
+Eres un ingeniero senior fullstack. Vas a construir un SaaS de administración de condominios para el mercado peruano (multi-tenant). Genera el código completo siguiendo TODAS las especificaciones siguientes.
+
+# 1) STACK OBLIGATORIO
+- Frontend: Next.js 15 (App Router, RSC, Turbopack), TypeScript estricto, TailwindCSS, shadcn/ui, Radix UI, lucide-react para íconos, react-hook-form + zod, TanStack Query, recharts.
+- Backend: Spring Boot 3 (Java 21) con arquitectura hexagonal, Spring Security + JWT, JPA/Hibernate, PostgreSQL 16, Flyway, MapStruct, OpenAPI/Swagger, paginación estándar Pageable.
+- Auth: JWT con refresh token. Dos perfiles: ADMIN/EMPLEADO (login con usuario+password) y HABITANTE (login con DNI+password).
+- Multi-tenancy: discriminador `tenant_id` en cada tabla + filtro automático Hibernate.
+- Moneda: Soles (S/). Identificadores: DNI (8 dígitos) y RUC (11 dígitos).
+
+# 2) SISTEMA DE DISEÑO
+- Color primario: violeta saturado tipo `#7C3AED` (configurable por tenant).
+- Fondo app: blanco con paneles en gris muy claro.
+- Tipografía: Inter o Geist Sans.
+- Bordes redondeados grandes (rounded-xl/2xl), sombras suaves.
+- Soporte dark mode con toggle en topbar.
+- Verde para montos positivos, rojo para deudas/egresos, violeta para acentos y CTAs primarios, azul para info secundaria.
+- Componentes base: Button (primary violeta sólido, secondary outline, ghost, destructive rojo), Card, Badge pill, Tabs, DataTable con búsqueda + filtros + paginación, EmptyState con ilustración de cilindro, Modal/Sheet, Form con labels arriba.
+
+# 3) LAYOUT GLOBAL (idéntico en todas las páginas internas)
+Estructura: sidebar fijo izquierdo + topbar superior + área de contenido a la derecha.
+
+## 3.1 Sidebar (ancho ~290px, fijo, scroll independiente)
+- Bloque superior: avatar circular violeta con la inicial del condominio + nombre del tenant en MAYÚSCULAS (ej. "TU EDIFICIO DEMO").
+- Encabezado de grupo "Principal" en gris claro pequeño.
+- Lista de items con: ícono lucide a la izquierda, label, chevron `v` a la derecha si tiene submenú.
+- Item activo: fondo lila pastel, texto violeta, barra lateral violeta de 3px a la izquierda.
+- Submenús indentados ~24px con ícono pequeño y línea vertical sutil.
+- Encabezado de grupo "Documents" antes de los últimos 3 items.
+- Estructura exacta del menú:
+  Principal:
+    - Dashboard
+    - Residentes (submenu: Lista de Residentes, Directiva, Multas)
+    - Áreas Comunes (submenu: Áreas, Reservas)
+    - Inmobiliaria (submenu: Lista de Inmuebles, Lectura de Servicios)
+    - Empleados (submenu: Lista, Dispositivos, Horarios)
+    - Financiero (submenu: Cuentas Bancarias, Presupuestos, Egresos, Ingresos)
+    - Servicios del Condominio (submenu: Cargos por Servicio, Cargos Totales, Cuotas de Mantenimiento)
+    - Incidencias
+    - Tareas (submenu: Programadas)
+    - Vehículos (submenu: Vehículos del Condominio, Movimiento Vehicular)
+    - Visitas
+  Documents:
+    - Archivos Compartidos
+    - Reportes
+    - Configuraciones
+- Botón colapsar sidebar (vuelve modo solo-íconos).
+
+## 3.2 Topbar (alto ~60px)
+- Izquierda: botón colapsar sidebar + breadcrumb "MiSistema > Módulo".
+- Derecha: campana de notificaciones con badge numérico, toggle luna/sol (dark mode), avatar circular del usuario con menú (Perfil, Notificaciones, Cerrar sesión).
+
+## 3.3 Header de cada página
+Patrón fijo:
+[ícono cuadrado lila pastel] Título grande bold (~36px)        [filtros: año/mes dropdowns]   [Botón violeta + ícono "Acción primaria"]
+                              Subtítulo descriptivo en gris
+
+# 4) FUNCIONALIDAD DETALLADA POR OPCIÓN
+
+## 4.1 Dashboard
+Resumen del condominio. Muestra:
+- 4 KPI cards en fila superior: Saldo Actual (suma de cuentas bancarias, en negro/rojo según signo), Ingresos del mes (verde), Egresos del mes (rojo), Monto Vencido (rojo, suma de deudas vencidas).
+- 2 cards: Visitas Activas (visitantes ahora dentro), Visitas del Mes.
+- Sección "Top Morosos": tabla de los 10 residentes con mayor deuda vencida (DNI, nombre, inmueble, monto).
+- Gráfico de barras Ingresos vs Egresos últimos 6 meses (recharts).
+- Gráfico dona de distribución de egresos por categoría.
+- Próximas reservas (lista de las 5 más próximas).
+- Incidencias abiertas (badge con conteo).
+
+## 4.2 Residentes › Lista de Residentes
+CRUD del directorio de personas del condominio.
+Entidad Persona: tipo (Natural/Jurídica), documento (DNI/RUC/CE), nombres, apellidos o razón social, género, fecha nacimiento, foto, lista de Contactos (email, teléfono con código país), saldo calculado, vinculación a uno o varios Inmuebles con rol (Propietario/Inquilino/Familiar).
+Tabla: avatar+badge tipo+documento, nombre completo, contactos, saldo (verde si 0/positivo, rojo si negativo).
+Acciones: buscar por nombre/DNI, botón "Opciones" (exportar Excel/PDF, importar CSV), crear nuevo (formulario fullpage con secciones colapsables: Datos personales, Contactos, Vincular a inmueble), ver ficha completa, editar, desactivar (soft delete).
+
+## 4.3 Residentes › Directiva
+Junta directiva del condominio. Entidad MiembroDirectiva: residente_id, cargo (Presidente, Vicepresidente, Tesorero, Secretario, Vocal), periodo (fecha_inicio, fecha_fin), estado (Activo/Histórico).
+Vista: cards con foto, nombre, cargo, periodo. Filtros por periodo. Crear, editar, finalizar mandato (no eliminar para mantener histórico).
+
+## 4.4 Residentes › Multas
+Sanciones a residentes. Entidad Multa: residente_id, inmueble_id, motivo (catálogo: ruido, mascota, basura, área común, estacionamiento, otro), descripción, monto S/, fecha_emisión, fecha_vencimiento, estado (Pendiente/Pagada/Anulada/Vencida), evidencias (fotos), aplicada_por (empleado/directiva).
+Tabla con filtros por estado, residente, fecha. Acciones: emitir multa, marcar pagada (asocia a un Ingreso), anular con motivo, exportar listado. Las multas vencidas y no pagadas se suman al saldo del residente.
+
+## 4.5 Áreas Comunes › Áreas
+Catálogo de espacios reservables. Entidad AreaComun: nombre, descripción, foto, costo_por_hora S/, modo_reserva (Por hora / Medio día / Todo el día), capacidad_máxima, requiere_garantía (boolean + monto), reglas_uso (texto), estado (Activa/Inactiva), días/horarios disponibles.
+Vista: grid de cards con nombre, descripción, costo, modo_reserva, badge "Reservas activas".
+Acciones: crear, editar, desactivar, ver historial de reservas del área.
+
+## 4.6 Áreas Comunes › Reservas
+Calendario y gestión de reservas. Entidad Reserva: area_comun_id, residente_id, inmueble_id, fecha, hora_inicio, hora_fin, costo_total calculado, estado (Solicitada/Confirmada/Pagada/Cancelada/Realizada), observaciones, comprobante_pago.
+Vista: calendario mensual + lista. Validar que no haya choque de horarios. Acciones: crear reserva, confirmar, registrar pago (genera Ingreso), cancelar (con política de devolución), ver detalle.
+
+## 4.7 Inmobiliaria › Lista de Inmuebles
+Pantalla con 3 tabs: Edificios | Bloques | Inmuebles.
+- **Edificio**: nombre, dirección, número de bloques, número de pisos totales, número de departamentos totales, foto, estado.
+- **Bloque**: edificio_id, nombre/letra, número de pisos, número de inmuebles.
+- **Inmueble** (departamento): bloque_id, número/código, piso, área m², habitaciones, baños, alícuota (% de participación), estado (Ocupado/Desocupado), residente actual (si existe), saldo.
+Cada tab muestra grid de cards con CTA propio "+ Nuevo Edificio/Bloque/Inmueble". Cards de edificio muestran contadores Dptos/Pisos/Bloques.
+
+## 4.8 Inmobiliaria › Lectura de Servicios
+Lecturas mensuales de medidores (agua, luz si aplica). Entidad LecturaServicio: inmueble_id, servicio_id (Agua/Luz/Gas), periodo (año-mes), lectura_anterior, lectura_actual, consumo_calculado, tarifa_aplicada, monto_calculado, registrado_por, fecha_lectura, foto_medidor.
+Vista: tabla por mes con filtro de periodo y servicio. Acciones: cargar lectura individual, carga masiva por CSV, importar con OCR de foto del medidor, generar cargos automáticos al cerrar el periodo.
+
+## 4.9 Empleados › Lista
+Personal del condominio. Entidad Empleado: DNI, nombres, apellidos, foto, cargo (Conserje, Vigilante, Limpieza, Mantenimiento, Administrador), tipo_contrato, fecha_ingreso, fecha_salida, salario S/, teléfono, email, estado.
+Tabla con filtros por cargo y estado. CRUD completo. Asociación con dispositivos y horarios.
+
+## 4.10 Empleados › Dispositivos
+Dispositivos asignados (radios, llaves, tablets, uniformes). Entidad Dispositivo: tipo, marca, modelo, número_serie, empleado_asignado, fecha_asignación, estado (Asignado/Disponible/Mantenimiento/Baja).
+
+## 4.11 Empleados › Horarios
+Turnos y asistencia. Entidad Horario: empleado_id, día_semana, hora_inicio, hora_fin, tipo_turno (Mañana/Tarde/Noche/Rotativo). Vista calendario semanal. Registro de asistencias con check-in/check-out.
+
+## 4.12 Financiero › Cuentas Bancarias
+Cuentas del condominio. Entidad CuentaBancaria: banco, tipo (Ahorros/Corriente/Detracción), moneda (PEN/USD), número_cuenta enmascarado, CCI, titular, saldo_inicial, saldo_actual calculado, estado.
+NO almacenar credenciales bancarias. Botón conciliación (subir extracto y matchear con ingresos/egresos).
+
+## 4.13 Financiero › Presupuestos
+Presupuestos anuales por rubro. Entidad Presupuesto: año, rubro_id, monto_presupuestado, monto_ejecutado calculado, % avance, observaciones. Vista comparativa Presupuestado vs Ejecutado con barras.
+
+## 4.14 Financiero › Egresos
+Salidas de dinero. Entidad Egreso: concepto, monto S/, categoría (rubro), proveedor, cuenta_bancaria_id, método_pago (Efectivo/Transferencia/Yape/Plin/Cheque), fecha_registro, fecha_pago, comprobante (PDF/imagen), estado (Pendiente/Pagado/Anulado), descripción, registrado_por.
+Header con filtros año/mes + CTA "+ Registrar Egreso". Tabla: Concepto, Monto, Categoría, Registro, Cuenta, Estado.
+
+## 4.15 Financiero › Ingresos
+Entradas de dinero. Entidad Ingreso: concepto, monto, origen (Cuota/Multa/Reserva/Donación/Otro), residente_id (opcional), inmueble_id (opcional), cuenta_bancaria_id, método_pago, fecha, comprobante, estado.
+Mismo layout que Egresos. Conciliación automática con cargos pendientes del residente.
+
+## 4.16 Servicios del Condominio › Cargos por Servicio
+Generación de cargos por servicio (agua, luz, gas, internet común). Para cada periodo se calcula el cargo por inmueble en base a lectura o prorrateo por alícuota. Tabla por servicio y periodo.
+
+## 4.17 Servicios del Condominio › Cargos Totales
+Estado de cuenta consolidado por inmueble: lista todos los cargos pendientes (mantenimiento, servicios, multas, reservas), pagos parciales, saldo final, intereses por mora. Vista por inmueble con detalle expandible.
+
+## 4.18 Servicios del Condominio › Cuotas de Mantenimiento
+Cuotas mensuales ordinarias y extraordinarias. Entidad Cuota: periodo, tipo (Ordinaria/Extraordinaria), monto_base S/, criterio (Igual para todos / Por alícuota / Personalizado), fecha_emisión, fecha_vencimiento, mora_diaria %, estado.
+Acción "Emitir cuotas del mes" genera un cargo por inmueble. Acción "Aplicar mora" recalcula intereses. Notificación masiva por WhatsApp/email.
+
+## 4.19 Incidencias
+Reportes de problemas del condominio. Entidad Incidencia: título, descripción, ubicación, prioridad (Baja/Media/Alta/Crítica), categoría, reportada_por, asignada_a (empleado), fotos, estado (Abierta/En proceso/Resuelta/Cerrada), fecha_reporte, fecha_cierre, comentarios (timeline).
+Vista kanban + lista. SLA por prioridad.
+
+## 4.20 Tareas › Programadas
+Tareas recurrentes (limpieza, mantenimiento, fumigación). Entidad Tarea: título, descripción, asignada_a, frecuencia (Diaria/Semanal/Mensual/Cron custom), próxima_ejecución, última_ejecución, estado, evidencia de cumplimiento.
+Vista calendario + lista.
+
+## 4.21 Vehículos › Vehículos del Condominio
+Vehículos registrados de residentes. Entidad Vehiculo: placa, marca, modelo, color, año, tipo (Auto/Moto/Bicicleta), residente_id, inmueble_id, espacio_estacionamiento, sticker/QR, estado.
+
+## 4.22 Vehículos › Movimiento Vehicular
+Bitácora de entradas/salidas. Entidad MovimientoVehicular: vehiculo_id (o placa visitante), tipo (Ingreso/Salida), fecha_hora, registrado_por (vigilante), foto_placa (opcional con OCR), observaciones.
+
+## 4.23 Visitas
+Control de visitantes. Entidad Visita: visitante (DNI, nombre, foto), inmueble_destino, residente_anfitrión, motivo, fecha_hora_ingreso, fecha_hora_salida, estado (Activa/Programada/Completada/Rechazada), QR generado, vehículo (opcional).
+Header: 4 KPIs (Total año, Activas, Programadas, Completadas) + filtro de año + CTA "+ Registrar Visita". Tabla con filtros avanzados por estado. Pre-registro con notificación al residente.
+
+## 4.24 Archivos Compartidos
+Repositorio documental. Entidad Archivo: nombre, descripción, categoría (Actas/Reglamentos/Contratos/Estados financieros/Otros), archivo (PDF/Word/imagen), visibilidad (Público para residentes/Solo directiva/Solo admin), subido_por, fecha, tamaño.
+Vista grid o lista. Búsqueda y filtros por categoría.
+
+## 4.25 Reportes
+Reportes operacionales y financieros. Catálogo de reportes:
+- Estado financiero mensual (Ingresos vs Egresos vs Saldo).
+- Morosidad por inmueble.
+- Reservas por área común.
+- Incidencias por categoría y SLA.
+- Visitas por mes.
+- Empleados: asistencia y horas.
+- Cuotas emitidas vs cobradas.
+Cada reporte tiene filtros de periodo + export PDF/Excel + gráficos.
+
+## 4.26 Configuraciones
+Pantalla con 2 tabs: Rubros | Condominio.
+- **Rubros**: árbol de Grupos de Rubros (ej. "Servicios Básicos") con sus Servicios anidados (agua, luz, mantenimiento). Cada servicio: nombre, tipo (Ordinario/Extraordinario), unidad, tarifa base, cuenta contable. Acciones: + Nuevo Grupo, + Nuevo Servicio, editar grupo, editar servicio.
+- **Condominio**: datos del tenant (razón social, RUC, dirección, logo, color primario, zona horaria, moneda, configuración de mora, plantillas de notificación, integraciones: WhatsApp Business, pasarela de pago, SMTP).
+
+## 4.27 Perfil (acceso desde avatar topbar)
+Datos del usuario logueado, cambio de password, foto, preferencias de notificación, sesiones activas.
+
+## 4.28 Notificaciones (acceso desde campana topbar)
+Centro de notificaciones in-app: cuotas vencidas, reservas próximas, incidencias asignadas, visitas pendientes, pagos confirmados. Marcar leída/no leída, filtros, configuración de canales (in-app/email/WhatsApp).
+
+# 5) REGLAS DE NEGOCIO TRANSVERSALES
+- Multi-tenant: cada operación filtra por tenant del usuario autenticado.
+- Roles: SUPER_ADMIN (cross-tenant), ADMIN_CONDOMINIO, EMPLEADO, MIEMBRO_DIRECTIVA, RESIDENTE. Permisos finos por módulo.
+- Auditoría: todas las entidades guardan created_at, updated_at, created_by, updated_by.
+- Soft delete con deleted_at.
+- Internacionalización i18n (español por defecto, listo para inglés).
+- Formato fechas: DD/MM/YYYY. Formato moneda: S/ #,###.00.
+- Validaciones zod en frontend y Bean Validation en backend.
+
+# 6) ENDPOINTS REST (patrón estándar)
+Para cada entidad: GET /api/v1/{recurso}?page=&size=&sort=&filtros, GET /api/v1/{recurso}/{id}, POST, PUT, DELETE (soft). Auth: POST /api/v1/auth/login, /refresh, /logout.
+
+# 7) ENTREGABLES
+1. Repo monorepo con `frontend/` (Next.js) y `backend/` (Spring Boot).
+2. docker-compose con Postgres + backend + frontend.
+3. Migraciones Flyway con schema completo y seeds (tenant demo, usuario admin demo, datos de ejemplo).
+4. Documentación OpenAPI accesible en /swagger-ui.
+5. README con instrucciones de arranque local.
+6. Tests unitarios mínimos para servicios críticos (cuotas, mora, reservas).
+
+# 8) PRIORIZACIÓN
+Implementa primero el MVP en este orden:
+1. Auth + multi-tenancy + sidebar/layout.
+2. Inmobiliaria (Edificios, Bloques, Inmuebles).
+3. Residentes y vinculación a inmuebles.
+4. Configuración de Rubros y Servicios.
+5. Cuotas de Mantenimiento + Cargos Totales.
+6. Ingresos y Egresos + Cuentas Bancarias.
+7. Áreas Comunes + Reservas.
+8. Visitas + Vehículos + Movimiento Vehicular.
+9. Empleados + Horarios + Dispositivos.
+10. Incidencias + Tareas.
+11. Reportes + Dashboard final.
+12. Notificaciones + integración WhatsApp.
+
+Empieza ahora generando la estructura del monorepo, el docker-compose, las migraciones Flyway iniciales (tenants, users, roles, edificios, bloques, inmuebles, personas) y el layout Next.js con el sidebar completo. Después continúa con el siguiente módulo de la priorización.

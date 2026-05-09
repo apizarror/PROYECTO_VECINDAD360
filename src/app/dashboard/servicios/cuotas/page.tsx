@@ -115,7 +115,7 @@ export default function CuotasPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-3 sm:gap-6">
                   <div className="text-right">
                     <p className="text-[10px] text-surface-400 uppercase">Monto base</p>
                     <p className="text-lg font-extrabold text-surface-800">S/ {cuota.montoBase}</p>

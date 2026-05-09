@@ -50,8 +50,8 @@ export function Ventajas() {
 
   return (
     <section className="py-20 px-4 bg-white relative overflow-hidden">
-      <BlobDecoration className="absolute -top-32 -right-32 w-80 h-80 text-primary-50" />
-      <BlobDecoration className="absolute -bottom-40 -left-20 w-96 h-96 text-accent-50" />
+      <BlobDecoration className="absolute -top-32 -right-32 w-80 h-80 text-primary-50 hidden sm:block" />
+      <BlobDecoration className="absolute -bottom-40 -left-20 w-96 h-96 text-accent-50 hidden sm:block" />
       <div className="max-w-7xl mx-auto relative z-10" ref={ref}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}

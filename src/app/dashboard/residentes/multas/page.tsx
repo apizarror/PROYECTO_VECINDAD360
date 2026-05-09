@@ -116,10 +116,10 @@ export default function MultasPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por residente o inmueble..."
-            className="w-full max-w-xs pl-10 pr-4 py-2.5 rounded-xl border border-surface-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors"
+            className="w-full sm:max-w-xs pl-10 pr-4 py-2.5 rounded-xl border border-surface-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors"
           />
         </div>
-        <div className="flex gap-1 p-1 bg-surface-100 rounded-xl">
+        <div className="flex gap-1 p-1 bg-surface-100 rounded-xl flex-wrap">
           {estados.map((e) => (
             <button
               key={e}

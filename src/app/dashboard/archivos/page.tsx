@@ -33,7 +33,7 @@ export default function ArchivosPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar archivo..."
-            className="w-full max-w-xs pl-10 pr-4 py-2.5 rounded-xl border border-surface-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+            className="w-full sm:max-w-xs pl-10 pr-4 py-2.5 rounded-xl border border-surface-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
           />
         </div>
         <div className="flex gap-1 p-1 bg-surface-100 rounded-xl flex-wrap">

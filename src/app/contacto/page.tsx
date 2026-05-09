@@ -15,7 +15,7 @@ export default function ContactoPage() {
       <Header />
       <main>
         <section className="pt-28 pb-16 px-4 gradient-hero text-white text-center">
-          <h1 className="text-3xl md:text-5xl font-extrabold">Contáctanos</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold">Contáctanos</h1>
           <p className="text-white/70 mt-4 max-w-xl mx-auto text-lg">
             Cuéntanos sobre tu condominio y te mostraremos cómo Vecindad360 puede
             ayudarte.

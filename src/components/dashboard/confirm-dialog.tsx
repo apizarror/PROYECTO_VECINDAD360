@@ -48,10 +48,10 @@ export function ConfirmDialog({
             >
               <h3 className="text-lg font-bold text-surface-800">{title}</h3>
               <p className="text-sm text-surface-500 mt-2 leading-relaxed">{message}</p>
-              <div className="flex justify-end gap-3 mt-6">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6">
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-surface-600 hover:bg-surface-50 transition-colors"
+                  className="px-4 py-2.5 rounded-lg text-sm font-medium text-surface-600 hover:bg-surface-50 transition-colors"
                 >
                   Cancelar
                 </button>
@@ -61,7 +61,7 @@ export function ConfirmDialog({
                     onClose();
                   }}
                   className={cn(
-                    "px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors",
+                    "px-4 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors",
                     variant === "danger"
                       ? "bg-red-600 hover:bg-red-700"
                       : "bg-primary-600 hover:bg-primary-700"

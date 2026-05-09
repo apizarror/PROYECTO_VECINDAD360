@@ -73,7 +73,7 @@ export function FormDrawer<S extends ZodSchema>({
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-lg bg-white shadow-2xl flex flex-col"
+            className="fixed top-0 right-0 bottom-0 z-50 w-full sm:max-w-lg bg-white shadow-2xl flex flex-col"
           >
             <div className="flex items-center justify-between p-5 border-b border-surface-100">
               <div>
@@ -97,7 +97,7 @@ export function FormDrawer<S extends ZodSchema>({
                   {field.type === "select" ? (
                     <select
                       {...register(field.name as any)}
-                      className="w-full rounded-xl border border-surface-200 px-3 py-2.5 text-sm text-surface-800 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors"
+                      className="w-full rounded-xl border border-surface-200 px-3 py-3 text-sm text-surface-800 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors"
                     >
                       <option value="">Seleccionar...</option>
                       {field.options?.map((opt) => (
@@ -111,7 +111,7 @@ export function FormDrawer<S extends ZodSchema>({
                       {...register(field.name as any)}
                       placeholder={field.placeholder}
                       rows={3}
-                      className="w-full rounded-xl border border-surface-200 px-3 py-2.5 text-sm text-surface-800 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors resize-none"
+                      className="w-full rounded-xl border border-surface-200 px-3 py-3 text-sm text-surface-800 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors resize-none"
                     />
                   ) : (
                     <input
@@ -120,7 +120,7 @@ export function FormDrawer<S extends ZodSchema>({
                         valueAsNumber: field.type === "number",
                       })}
                       placeholder={field.placeholder}
-                      className="w-full rounded-xl border border-surface-200 px-3 py-2.5 text-sm text-surface-800 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors"
+                      className="w-full rounded-xl border border-surface-200 px-3 py-3 text-sm text-surface-800 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors"
                     />
                   )}
                   {errors[field.name] && (
@@ -132,18 +132,18 @@ export function FormDrawer<S extends ZodSchema>({
               ))}
             </form>
 
-            <div className="flex justify-end gap-3 p-5 border-t border-surface-100">
+            <div className="flex flex-col sm:flex-row justify-end gap-3 p-5 border-t border-surface-100">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-surface-600 hover:bg-surface-50 transition-colors"
+                className="px-4 py-2.5 rounded-lg text-sm font-medium text-surface-600 hover:bg-surface-50 transition-colors"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={handleSubmit(onFormSubmit)}
-                className="px-6 py-2 rounded-lg text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 shadow-sm transition-colors"
+                className="px-6 py-2.5 rounded-lg text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 shadow-sm transition-colors"
               >
                 Guardar
               </button>

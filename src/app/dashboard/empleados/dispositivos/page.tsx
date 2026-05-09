@@ -96,7 +96,7 @@ export default function DispositivosPage() {
                 e.stopPropagation();
                 setDeleteTarget(d);
               }}
-              className="absolute top-3 right-3 z-10 p-1.5 rounded-lg bg-white/80 text-surface-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+              className="absolute top-3 right-3 z-10 p-2 rounded-lg bg-white/80 text-surface-400 hover:text-red-500 hover:bg-red-50 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all"
             >
               <Trash2 className="h-4 w-4" />
             </button>

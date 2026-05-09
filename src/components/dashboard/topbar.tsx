@@ -84,7 +84,7 @@ export function Topbar({ collapsed, onToggleMobile }: { collapsed: boolean; onTo
         {onToggleMobile && (
           <button
             onClick={onToggleMobile}
-            className="md:hidden p-2 rounded-lg text-surface-500 hover:text-surface-700 hover:bg-surface-50 mr-1"
+            className="md:hidden p-2.5 rounded-lg text-surface-500 hover:text-surface-700 hover:bg-surface-50 mr-1"
             aria-label="Abrir menú"
           >
             <Menu className="h-5 w-5" />
@@ -110,7 +110,7 @@ export function Topbar({ collapsed, onToggleMobile }: { collapsed: boolean; onTo
         <div className="relative">
           <button
             onClick={() => setShowNotifs(!showNotifs)}
-            className="relative p-2 rounded-lg text-surface-400 hover:text-surface-600 hover:bg-surface-50 transition-colors"
+            className="relative p-2.5 rounded-lg text-surface-400 hover:text-surface-600 hover:bg-surface-50 transition-colors"
             aria-label="Notificaciones"
           >
             <Bell className="h-5 w-5" />
@@ -124,7 +124,7 @@ export function Topbar({ collapsed, onToggleMobile }: { collapsed: boolean; onTo
           {showNotifs && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowNotifs(false)} />
-              <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl border border-surface-200 shadow-xl z-50">
+              <div className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl border border-surface-200 shadow-xl z-50">
                 <div className="p-3 border-b border-surface-100">
                   <p className="text-sm font-semibold text-surface-800">Notificaciones</p>
                 </div>
@@ -161,7 +161,7 @@ export function Topbar({ collapsed, onToggleMobile }: { collapsed: boolean; onTo
         {/* Dark mode toggle */}
         <button
           onClick={toggleDark}
-          className="p-2 rounded-lg text-surface-400 hover:text-surface-600 hover:bg-surface-50 transition-colors"
+          className="p-2.5 rounded-lg text-surface-400 hover:text-surface-600 hover:bg-surface-50 transition-colors"
           aria-label="Cambiar tema"
         >
           {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
@@ -171,7 +171,7 @@ export function Topbar({ collapsed, onToggleMobile }: { collapsed: boolean; onTo
         <div className="relative ml-1">
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-surface-50 transition-colors"
+            className="flex items-center gap-2 p-2 rounded-lg hover:bg-surface-50 transition-colors"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-600 text-white text-xs font-bold">
               {user?.avatar || "AD"}
@@ -186,7 +186,7 @@ export function Topbar({ collapsed, onToggleMobile }: { collapsed: boolean; onTo
                 <Link
                   href="/dashboard/perfil"
                   onClick={() => setShowUserMenu(false)}
-                  className="flex items-center gap-2.5 px-3 py-2 text-sm text-surface-600 hover:bg-surface-50"
+                  className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-surface-600 hover:bg-surface-50"
                 >
                   <User className="h-4 w-4" />
                   Perfil
@@ -194,7 +194,7 @@ export function Topbar({ collapsed, onToggleMobile }: { collapsed: boolean; onTo
                 <Link
                   href="/dashboard/notificaciones"
                   onClick={() => setShowUserMenu(false)}
-                  className="flex items-center gap-2.5 px-3 py-2 text-sm text-surface-600 hover:bg-surface-50"
+                  className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-surface-600 hover:bg-surface-50"
                 >
                   <Bell className="h-4 w-4" />
                   Notificaciones
@@ -202,7 +202,7 @@ export function Topbar({ collapsed, onToggleMobile }: { collapsed: boolean; onTo
                 <Link
                   href="/dashboard/configuraciones"
                   onClick={() => setShowUserMenu(false)}
-                  className="flex items-center gap-2.5 px-3 py-2 text-sm text-surface-600 hover:bg-surface-50"
+                  className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-surface-600 hover:bg-surface-50"
                 >
                   <Settings className="h-4 w-4" />
                   Configuraciones
@@ -210,7 +210,7 @@ export function Topbar({ collapsed, onToggleMobile }: { collapsed: boolean; onTo
                 <div className="border-t border-surface-100 my-1" />
                 <button
                   onClick={() => { logout(); router.push("/auth"); }}
-                  className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                  className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50"
                 >
                   <LogOut className="h-4 w-4" />
                   Cerrar sesión

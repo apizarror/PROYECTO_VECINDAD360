@@ -51,7 +51,7 @@ export function Hero() {
         <div className="absolute rounded-full w-60 h-60 bg-white/[0.03] -bottom-20 left-1/3" />
       </div>
 
-      <div className="relative z-20 w-full max-w-7xl mx-auto px-6 py-20 md:py-28">
+      <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-28">
         <motion.div
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
@@ -66,7 +66,7 @@ export function Hero() {
 
             <motion.h1
               variants={fadeUp}
-              className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-tight"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-tight"
             >
               Administra tu condominio{" "}
               <span className="text-accent-400">sin estrés</span>
@@ -74,7 +74,7 @@ export function Hero() {
 
             <motion.p
               variants={fadeUp}
-              className="text-lg text-white/70 max-w-xl mx-auto lg:mx-0"
+              className="text-base md:text-lg text-white/70 max-w-xl mx-auto lg:mx-0"
             >
               La plataforma integral que conecta administradores, residentes y
               proveedores. Tus vecinos pagan con Yape, Plin o tarjeta. Tú
