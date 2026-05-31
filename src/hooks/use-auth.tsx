@@ -21,7 +21,7 @@ export interface User {
   apellidos: string;
   dni: string;
   telefono: string;
-  rol: "SUPER_ADMIN" | "ADMIN_CONDOMINIO" | "EMPLEADO";
+  rol: "SUPER_ADMIN" | "ADMIN_CONDOMINIO" | "EMPLEADO" | "RESIDENTE";
   avatar: string;
   condominioId: string | null;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -25,6 +25,7 @@ import {
   Cell,
 } from "recharts";
 import { HeaderPage } from "@/components/dashboard/header-page";
+import { OnboardingWizard } from "@/components/dashboard/onboarding-wizard";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useApiList } from "@/hooks/use-api";
@@ -77,11 +78,37 @@ interface CuentaBancaria {
   saldoActual: number;
 }
 
+interface Edificio {
+  id: string;
+  nombre: string;
+}
+
+const ONBOARDING_DISMISSED_KEY = "vecindad360_onboarding_dismissed";
+
 const COLORS = ["#F97316", "#3B82F6", "#22C55E", "#8B5CF6", "#EF4444", "#06B6D4"];
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const rol = (user?.rol || "ADMIN_CONDOMINIO") as Rol;
+
+  // Onboarding state
+  const [onboardingDismissed, setOnboardingDismissed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem(ONBOARDING_DISMISSED_KEY) === "true";
+  });
+
+  const { data: edificios = [], isLoading: loadingEdificios, refetch: refetchEdificios } = useApiList<Edificio>("edificios");
+
+  const handleOnboardingComplete = useCallback(() => {
+    setOnboardingDismissed(true);
+    localStorage.setItem(ONBOARDING_DISMISSED_KEY, "true");
+    refetchEdificios();
+  }, [refetchEdificios]);
+
+  const handleOnboardingDismiss = useCallback(() => {
+    setOnboardingDismissed(true);
+    localStorage.setItem(ONBOARDING_DISMISSED_KEY, "true");
+  }, []);
 
   // Fetch data based on role
   const { data: personas = [], isLoading: loadingPersonas } = useApiList<Persona>("personas");
@@ -92,7 +119,7 @@ export default function DashboardPage() {
   const { data: egresos = [] } = useApiList<Egreso>("egresos");
   const { data: cuentas = [] } = useApiList<CuentaBancaria>("cuentas-bancarias");
 
-  const isLoading = loadingPersonas || loadingVisitas;
+  const isLoading = loadingPersonas || loadingVisitas || loadingEdificios;
 
   // Computed KPIs
   const saldoTotal = useMemo(
@@ -250,6 +277,16 @@ export default function DashboardPage() {
             </div>
           </div>
         )}
+      </>
+    );
+  }
+
+  // ─── ADMIN_CONDOMINIO: onboarding wizard when no edificios ─
+  if (rol === "ADMIN_CONDOMINIO" && edificios.length === 0 && !onboardingDismissed) {
+    return (
+      <>
+        <HeaderPage icon={LayoutDashboard} title="Bienvenido a Vecindad360" subtitle="Configura tu condominio en pocos pasos" />
+        <OnboardingWizard onComplete={handleOnboardingComplete} onDismiss={handleOnboardingDismiss} />
       </>
     );
   }

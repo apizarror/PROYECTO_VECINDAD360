@@ -90,6 +90,32 @@ async function main() {
   })
   console.log('Admin Demo creado:', adminDemo.email)
 
+  // ─── Empleado User ──────────────────────────
+  const empleadoUser = await prisma.user.create({
+    data: {
+      email: 'empleado@vecindad360.com',
+      password: await bcrypt.hash('empleado123', 10),
+      nombre: 'Roberto',
+      apellidos: 'Flores',
+      rol: 'EMPLEADO',
+      condominioId: condominio.id,
+    },
+  })
+  console.log('Empleado User creado:', empleadoUser.email)
+
+  // ─── Residente User (will link inmuebleId after inmuebles are created) ──
+  const residenteUser = await prisma.user.create({
+    data: {
+      email: 'residente@vecindad360.com',
+      password: await bcrypt.hash('residente123', 10),
+      nombre: 'Luis',
+      apellidos: 'García',
+      rol: 'RESIDENTE',
+      condominioId: condominio.id,
+    },
+  })
+  console.log('Residente User creado:', residenteUser.email)
+
   // ─── Edificio ────────────────────────────────
   const edificio = await prisma.edificio.create({
     data: {
@@ -150,6 +176,13 @@ async function main() {
     inmuebles.push(inmueble)
   }
   console.log(`${inmuebles.length} inmuebles creados.`)
+
+  // ─── Link residente user to inmueble 101 ────
+  await prisma.user.update({
+    where: { id: residenteUser.id },
+    data: { inmuebleId: inmuebles[0].id },
+  })
+  console.log('Residente vinculado a inmueble 101.')
 
   // ─── Personas ────────────────────────────────
   const personasData = [
@@ -657,6 +690,12 @@ async function main() {
   console.log('  Admin Demo:')
   console.log('    Email: demo@vecindad360.com')
   console.log('    Password: demo123')
+  console.log('  Empleado:')
+  console.log('    Email: empleado@vecindad360.com')
+  console.log('    Password: empleado123')
+  console.log('  Residente:')
+  console.log('    Email: residente@vecindad360.com')
+  console.log('    Password: residente123')
   console.log('========================================\n')
 }
 
