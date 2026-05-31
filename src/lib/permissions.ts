@@ -92,6 +92,7 @@ const SIDEBAR_ITEMS: Record<Rol, string[]> = {
   SUPER_ADMIN: [
     "Panel Admin",
     "Condominios",
+    "Usuarios",
   ],
 
   ADMIN_CONDOMINIO: [

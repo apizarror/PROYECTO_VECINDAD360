@@ -142,6 +142,11 @@ const adminMenuGroup: MenuGroup = {
       icon: Building2,
       href: "/dashboard/admin/condominios",
     },
+    {
+      label: "Usuarios",
+      icon: Users,
+      href: "/dashboard/admin/usuarios",
+    },
   ],
 };
 
