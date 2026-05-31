@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
+import { TrialOverlay } from "@/components/dashboard/trial-overlay";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 
@@ -25,16 +26,20 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading, trialExpired } = useAuth();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isLoading && !isAuthenticated) {
       router.replace("/auth");
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isLoading, router]);
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   if (!isAuthenticated) {
     return <LoadingScreen />;
@@ -42,6 +47,7 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-surface-50">
+      {trialExpired && <TrialOverlay />}
       <Sidebar
         collapsed={collapsed}
         onToggleCollapse={() => setCollapsed(!collapsed)}

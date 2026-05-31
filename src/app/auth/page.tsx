@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 
 const schema = z.object({
-  username: z.string().min(1, "Usuario requerido"),
+  email: z.string().min(1, "Email requerido").email("Email inválido"),
   password: z.string().min(1, "Contraseña requerida"),
 });
 
@@ -29,11 +30,11 @@ export default function AuthPage() {
 
   const onSubmit = async (data: FormData) => {
     setError("");
-    const success = await login(data.username, data.password);
+    const success = await login(data.email, data.password);
     if (success) {
       router.push("/dashboard");
     } else {
-      setError("Usuario o contraseña incorrectos");
+      setError("Email o contraseña incorrectos");
     }
   };
 
@@ -56,18 +57,19 @@ export default function AuthPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-surface-700 mb-1.5">
-                Usuario
+                Email
               </label>
               <input
-                {...register("username")}
+                {...register("email")}
+                type="email"
                 className={cn(
                   "w-full rounded-xl border border-surface-200 px-4 py-3 text-sm text-surface-800 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent",
-                  errors.username && "border-red-400"
+                  errors.email && "border-red-400"
                 )}
-                placeholder="admin"
+                placeholder="tu@email.com"
               />
-              {errors.username && (
-                <p className="text-red-500 text-xs mt-1">{errors.username.message}</p>
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
               )}
             </div>
             <div>
@@ -108,12 +110,12 @@ export default function AuthPage() {
             </Button>
           </form>
 
-          {process.env.NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS === "true" && (
-            <p className="text-center text-xs text-surface-400 mt-6">
-              Usuario de prueba: <span className="font-mono text-surface-600">admin</span> /{" "}
-              <span className="font-mono text-surface-600">admin123</span>
-            </p>
-          )}
+          <p className="text-center text-sm text-surface-500 mt-6">
+            ¿No tienes cuenta?{" "}
+            <Link href="/auth/register" className="text-primary-600 font-semibold hover:underline">
+              Regístrate gratis
+            </Link>
+          </p>
         </div>
       </section>
     </main>
