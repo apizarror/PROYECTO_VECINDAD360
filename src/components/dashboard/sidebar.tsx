@@ -18,6 +18,7 @@ import {
   PersonStanding,
   FolderOpen,
   BarChart3,
+  Shield,
   Settings,
   ChevronDown,
   ChevronLeft,
@@ -131,6 +132,18 @@ const menuGroups: MenuGroup[] = [
   },
 ];
 
+const adminMenuGroup: MenuGroup = {
+  header: "Super Admin",
+  items: [
+    { label: "Panel Admin", icon: Shield, href: "/dashboard/admin" },
+    {
+      label: "Condominios",
+      icon: Building2,
+      href: "/dashboard/admin/condominios",
+    },
+  ],
+};
+
 
 export function Sidebar({
   collapsed,
@@ -145,9 +158,14 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const { user } = useAuth();
+  const visibleGroups =
+    user?.rol === "SUPER_ADMIN"
+      ? [...menuGroups, adminMenuGroup]
+      : menuGroups;
+
   const [openSubmenus, setOpenSubmenus] = useState<Set<string>>(() => {
     const expanded = new Set<string>();
-    for (const group of menuGroups) {
+    for (const group of visibleGroups) {
       for (const item of group.items) {
         if (item.submenu?.some((sub) => pathname.startsWith(sub.href))) {
           expanded.add(item.label);
@@ -218,7 +236,7 @@ export function Sidebar({
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-3 scrollbar-thin">
-        {menuGroups.map((group) => (
+        {visibleGroups.map((group) => (
           <div key={group.header} className="mb-4">
             {!collapsed && (
               <p className="px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-surface-400">

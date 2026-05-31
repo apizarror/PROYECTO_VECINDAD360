@@ -38,9 +38,11 @@ export interface RegisterData {
   password: string;
   nombre: string;
   apellidos: string;
-  dni: string;
+  dni?: string;
   telefono?: string;
   condominioNombre: string;
+  direccion: string;
+  modalidad?: "AUTOGESTION" | "ADMINISTRADO";
 }
 
 interface AuthContextType {

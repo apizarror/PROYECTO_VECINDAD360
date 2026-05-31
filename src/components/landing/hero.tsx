@@ -80,7 +80,7 @@ export function Hero() {
               variants={fadeUp}
               className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start pt-2"
             >
-              <Link href="/auth">
+              <Link href="/auth/register">
                 <Button variant="accent" size="lg">
                   Probar gratis
                   <ArrowRight className="ml-2 h-4 w-4" />

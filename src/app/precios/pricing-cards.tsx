@@ -22,7 +22,7 @@ const tiers: PricingTier[] = [
       "Soporte por email",
     ],
     cta: "Comenzar Gratis",
-    href: "/auth",
+    href: "/auth/register",
   },
   {
     name: "Pro",
@@ -40,7 +40,7 @@ const tiers: PricingTier[] = [
       "Soporte prioritario 24/7",
     ],
     cta: "Comenzar Pro",
-    href: "/auth",
+    href: "/auth/register",
     popular: true,
   },
   {

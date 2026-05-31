@@ -38,7 +38,7 @@ export function CtaFinal() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Link href="/auth">
+            <Link href="/auth/register">
               <Button variant="outline-white" size="lg">
                 Comenzar Gratis
               </Button>

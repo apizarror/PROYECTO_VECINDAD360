@@ -73,7 +73,7 @@ export function Header() {
               Ver Demo
             </Button>
           </Link>
-          <Link href="/auth">
+          <Link href="/auth/register">
             <Button variant="accent" size="sm">
               Comenzar Gratis
             </Button>
@@ -157,7 +157,7 @@ export function Header() {
                     Ver Demo
                   </Button>
                 </Link>
-                <Link href="/auth" onClick={() => setMobileOpen(false)}>
+                <Link href="/auth/register" onClick={() => setMobileOpen(false)}>
                   <Button variant="accent" className="w-full">
                     Comenzar Gratis
                   </Button>
