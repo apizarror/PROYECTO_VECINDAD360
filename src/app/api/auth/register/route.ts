@@ -1,9 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { hashPassword, createSession } from "@/lib/auth";
+import { hashPassword, createSession, getSession } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
+    // Block demo account from registering new condominios
+    const currentUser = await getSession();
+    if (currentUser?.email === "demo@vecindad360.com") {
+      return NextResponse.json(
+        { error: "La cuenta demo es solo lectura" },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const {
       email,

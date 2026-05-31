@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession, isTrialExpired } from "@/lib/auth";
 
+const DEMO_EMAIL = "demo@vecindad360.com";
+
 interface HandlerOptions {
   model: string;
   include?: Record<string, boolean>;
@@ -59,6 +61,10 @@ export function createCreateHandler(options: HandlerOptions) {
     try {
       const { error, user } = await authenticate(options.allowedRoles);
       if (error) return error;
+
+      if (user!.email === DEMO_EMAIL) {
+        return NextResponse.json({ error: "La cuenta demo es solo lectura" }, { status: 403 });
+      }
 
       const body = await request.json();
       const model = getModel(options.model);
@@ -122,6 +128,10 @@ export function createUpdateHandler(options: HandlerOptions) {
       const { error, user } = await authenticate(options.allowedRoles);
       if (error) return error;
 
+      if (user!.email === DEMO_EMAIL) {
+        return NextResponse.json({ error: "La cuenta demo es solo lectura" }, { status: 403 });
+      }
+
       const { id } = await params;
       const body = await request.json();
       const model = getModel(options.model);
@@ -159,6 +169,10 @@ export function createDeleteHandler(options: HandlerOptions) {
     try {
       const { error, user } = await authenticate(options.allowedRoles);
       if (error) return error;
+
+      if (user!.email === DEMO_EMAIL) {
+        return NextResponse.json({ error: "La cuenta demo es solo lectura" }, { status: 403 });
+      }
 
       const { id } = await params;
       const model = getModel(options.model);
