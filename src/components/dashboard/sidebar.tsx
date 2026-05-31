@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
+import { canSeeMenuItem, getVisibleGroups, ROL_LABELS, type Rol } from "@/lib/permissions";
 
 interface SubMenuItem {
   label: string;
@@ -158,10 +159,17 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const { user } = useAuth();
-  const visibleGroups =
-    user?.rol === "SUPER_ADMIN"
-      ? [...menuGroups, adminMenuGroup]
-      : menuGroups;
+  const rol = (user?.rol || "ADMIN_CONDOMINIO") as Rol;
+  const allowedGroupHeaders = getVisibleGroups(rol);
+
+  const allGroups = [...menuGroups, adminMenuGroup];
+  const visibleGroups = allGroups
+    .filter((group) => allowedGroupHeaders.includes(group.header))
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => canSeeMenuItem(rol, item.label)),
+    }))
+    .filter((group) => group.items.length > 0);
 
   const [openSubmenus, setOpenSubmenus] = useState<Set<string>>(() => {
     const expanded = new Set<string>();
@@ -223,7 +231,7 @@ export function Sidebar({
             <p className="text-sm font-bold text-surface-800 truncate leading-tight">
               {user?.nombre} {user?.apellidos}
             </p>
-            <p className="text-[10px] text-surface-400 truncate">{user?.rol === "SUPER_ADMIN" ? "Super Admin" : "Administrador"}</p>
+            <p className="text-[10px] text-surface-400 truncate">{ROL_LABELS[rol]}</p>
           </div>
         )}
         <button

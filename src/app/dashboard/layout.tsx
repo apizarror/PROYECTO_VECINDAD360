@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
 import { TrialOverlay } from "@/components/dashboard/trial-overlay";
 import { useAuth } from "@/hooks/use-auth";
+import { hasAccess, DEFAULT_ROUTE, type Rol } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 
 function LoadingScreen() {
@@ -26,16 +27,33 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isAuthenticated, isLoading, trialExpired } = useAuth();
+  const { user, isAuthenticated, isLoading, trialExpired } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (isLoading) return;
+
+    if (!isAuthenticated) {
       router.replace("/auth");
+      return;
     }
-  }, [isAuthenticated, isLoading, router]);
+
+    const rol = (user?.rol || "ADMIN_CONDOMINIO") as Rol;
+
+    // Redirigir /dashboard al destino correcto según rol
+    if (pathname === "/dashboard" && rol === "SUPER_ADMIN") {
+      router.replace(DEFAULT_ROUTE[rol]);
+      return;
+    }
+
+    // Proteger rutas: si no tiene acceso, redirigir a su ruta por defecto
+    if (!hasAccess(rol, pathname)) {
+      router.replace(DEFAULT_ROUTE[rol]);
+    }
+  }, [isAuthenticated, isLoading, user, pathname, router]);
 
   if (isLoading) {
     return <LoadingScreen />;

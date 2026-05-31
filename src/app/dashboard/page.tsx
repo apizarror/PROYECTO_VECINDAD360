@@ -1,127 +1,277 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
-import { LayoutDashboard, TrendingUp, TrendingDown, AlertCircle, Users, DoorOpen } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import {
+  LayoutDashboard,
+  TrendingUp,
+  TrendingDown,
+  AlertCircle,
+  Users,
+  DoorOpen,
+  Loader2,
+} from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
+import { useApiList } from "@/hooks/use-api";
+import type { Rol } from "@/lib/permissions";
 
-const kpiData = [
-  { label: "Saldo Actual", value: "S/ 24,580.00", variant: "default" as const, icon: null },
-  { label: "Ingresos del Mes", value: "S/ 8,320.00", variant: "positive" as const, icon: TrendingUp },
-  { label: "Egresos del Mes", value: "S/ 3,150.00", variant: "negative" as const, icon: TrendingDown },
-  { label: "Monto Vencido", value: "S/ 2,480.00", variant: "negative" as const, icon: AlertCircle },
-];
+// Types matching Prisma models
+interface Persona {
+  id: string;
+  saldo: number;
+  nombres: string;
+  apellidos: string;
+  vinculaciones?: { inmueble?: { numero: string } }[];
+}
 
-const visitasKpi = [
-  { label: "Visitas Activas", value: "4", icon: Users },
-  { label: "Visitas del Mes", value: "127", icon: DoorOpen },
-];
+interface Visita {
+  id: string;
+  estado: string;
+  fechaHoraIngreso: string;
+}
 
-const topMorosos = [
-  { dni: "12345678", nombre: "Luis García", inmueble: "Dpto 302", monto: "S/ 1,250.00" },
-  { dni: "87654321", nombre: "María Torres", inmueble: "Dpto 105", monto: "S/ 980.00" },
-  { dni: "45678901", nombre: "Jorge Mendoza", inmueble: "Dpto 501", monto: "S/ 750.00" },
-  { dni: "23456789", nombre: "Ana Quispe", inmueble: "Dpto 203", monto: "S/ 640.00" },
-  { dni: "34567890", nombre: "Pedro Sánchez", inmueble: "Dpto 404", monto: "S/ 520.00" },
-];
+interface Incidencia {
+  id: string;
+  estado: string;
+}
 
-const proximasReservas = [
-  { area: "Parrilla", fecha: "10 May 2026", hora: "18:00 - 22:00", residente: "Dpto 302" },
-  { area: "Salón de Eventos", fecha: "12 May 2026", hora: "14:00 - 20:00", residente: "Dpto 501" },
-  { area: "Piscina", fecha: "15 May 2026", hora: "10:00 - 14:00", residente: "Dpto 105" },
-];
+interface Reserva {
+  id: string;
+  fecha: string;
+  horaInicio: string;
+  horaFin: string;
+  areaComun?: { nombre: string };
+  inmueble?: { numero: string };
+}
 
-const incidenciasAbiertas = 7;
+interface Ingreso {
+  id: string;
+  monto: number;
+  fecha: string;
+}
 
-const ingresosEgresosData = [
-  { mes: "Nov 25", ingresos: 4200, egresos: 3150 },
-  { mes: "Dic 25", ingresos: 3800, egresos: 4200 },
-  { mes: "Ene 26", ingresos: 4500, egresos: 3800 },
-  { mes: "Feb 26", ingresos: 4100, egresos: 3500 },
-  { mes: "Mar 26", ingresos: 4800, egresos: 3900 },
-  { mes: "Abr 26", ingresos: 5200, egresos: 4100 },
-];
+interface Egreso {
+  id: string;
+  monto: number;
+  categoria: string;
+  fechaRegistro: string;
+}
 
-const egresosData = [
-  { categoria: "Mantenimiento", monto: 8200, fill: "#F97316" },
-  { categoria: "Personal", monto: 16000, fill: "#3B82F6" },
-  { categoria: "Servicios Básicos", monto: 3200, fill: "#22C55E" },
-  { categoria: "Administrativos", monto: 1608, fill: "#8B5CF6" },
-  { categoria: "Fondos", monto: 900, fill: "#EF4444" },
-];
+interface CuentaBancaria {
+  id: string;
+  saldoActual: number;
+}
+
+const COLORS = ["#F97316", "#3B82F6", "#22C55E", "#8B5CF6", "#EF4444", "#06B6D4"];
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+  const rol = (user?.rol || "ADMIN_CONDOMINIO") as Rol;
+
+  // Fetch data based on role
+  const { data: personas = [], isLoading: loadingPersonas } = useApiList<Persona>("personas");
+  const { data: visitas = [], isLoading: loadingVisitas } = useApiList<Visita>("visitas");
+  const { data: incidencias = [] } = useApiList<Incidencia>("incidencias");
+  const { data: reservas = [] } = useApiList<Reserva>("reservas");
+  const { data: ingresos = [] } = useApiList<Ingreso>("ingresos");
+  const { data: egresos = [] } = useApiList<Egreso>("egresos");
+  const { data: cuentas = [] } = useApiList<CuentaBancaria>("cuentas-bancarias");
+
+  const isLoading = loadingPersonas || loadingVisitas;
+
+  // Computed KPIs
+  const saldoTotal = useMemo(
+    () => cuentas.reduce((sum, c) => sum + c.saldoActual, 0),
+    [cuentas]
+  );
+
+  const now = new Date();
+  const mesActual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+  const ingresosMes = useMemo(
+    () => ingresos.filter((i) => i.fecha?.startsWith(mesActual)).reduce((sum, i) => sum + i.monto, 0),
+    [ingresos, mesActual]
+  );
+
+  const egresosMes = useMemo(
+    () => egresos.filter((e) => e.fechaRegistro?.startsWith(mesActual)).reduce((sum, e) => sum + e.monto, 0),
+    [egresos, mesActual]
+  );
+
+  const montoVencido = useMemo(
+    () => personas.filter((p) => p.saldo < 0).reduce((sum, p) => sum + Math.abs(p.saldo), 0),
+    [personas]
+  );
+
+  const visitasActivas = useMemo(
+    () => visitas.filter((v) => v.estado === "En curso" || v.estado === "Programada").length,
+    [visitas]
+  );
+
+  const visitasMes = useMemo(
+    () => visitas.filter((v) => v.fechaHoraIngreso?.startsWith(mesActual)).length,
+    [visitas, mesActual]
+  );
+
+  const incidenciasAbiertas = useMemo(
+    () => incidencias.filter((i) => i.estado === "Abierta" || i.estado === "En Progreso").length,
+    [incidencias]
+  );
+
+  const topMorosos = useMemo(
+    () =>
+      personas
+        .filter((p) => p.saldo < 0)
+        .sort((a, b) => a.saldo - b.saldo)
+        .slice(0, 5)
+        .map((p) => ({
+          nombre: `${p.nombres} ${p.apellidos}`,
+          inmueble: p.vinculaciones?.[0]?.inmueble?.numero
+            ? `Dpto ${p.vinculaciones[0].inmueble.numero}`
+            : "-",
+          monto: Math.abs(p.saldo),
+        })),
+    [personas]
+  );
+
+  const proximasReservas = useMemo(
+    () =>
+      reservas
+        .filter((r) => r.fecha >= now.toISOString().split("T")[0])
+        .sort((a, b) => a.fecha.localeCompare(b.fecha))
+        .slice(0, 5),
+    [reservas, now]
+  );
+
+  // Chart data: group egresos by category
+  const egresosChart = useMemo(() => {
+    const byCat: Record<string, number> = {};
+    egresos.forEach((e) => {
+      byCat[e.categoria] = (byCat[e.categoria] || 0) + e.monto;
+    });
+    return Object.entries(byCat).map(([categoria, monto], i) => ({
+      categoria,
+      monto,
+      fill: COLORS[i % COLORS.length],
+    }));
+  }, [egresos]);
+
+  // Chart data: ingresos vs egresos last 6 months
+  const ingresosEgresosChart = useMemo(() => {
+    const months: Record<string, { ingresos: number; egresos: number }> = {};
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const label = d.toLocaleDateString("es-PE", { month: "short", year: "2-digit" });
+      months[key] = { ingresos: 0, egresos: 0 };
+      // Store label mapping
+      (months[key] as Record<string, unknown>)._label = label;
+    }
+    ingresos.forEach((i) => {
+      const key = i.fecha?.slice(0, 7);
+      if (key && months[key]) months[key].ingresos += i.monto;
+    });
+    egresos.forEach((e) => {
+      const key = e.fechaRegistro?.slice(0, 7);
+      if (key && months[key]) months[key].egresos += e.monto;
+    });
+    return Object.entries(months).map(([, v]) => ({
+      mes: (v as Record<string, unknown>)._label as string,
+      ingresos: v.ingresos,
+      egresos: v.egresos,
+    }));
+  }, [ingresos, egresos, now]);
+
+  const fmt = (n: number) => `S/ ${n.toLocaleString("es-PE", { minimumFractionDigits: 2 })}`;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+      </div>
+    );
+  }
+
+  // ─── EMPLEADO dashboard (simplified) ─────────────────────
+  if (rol === "EMPLEADO") {
+    return (
+      <>
+        <HeaderPage icon={LayoutDashboard} title="Dashboard" subtitle="Resumen de tu turno" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <KpiCard label="Visitas Activas" value={String(visitasActivas)} icon={Users} />
+          <KpiCard label="Visitas del Mes" value={String(visitasMes)} icon={DoorOpen} />
+          <KpiCard label="Incidencias Abiertas" value={String(incidenciasAbiertas)} icon={AlertCircle} variant="negative" />
+        </div>
+      </>
+    );
+  }
+
+  // ─── RESIDENTE dashboard (simplified) ────────────────────
+  if (rol === "RESIDENTE") {
+    return (
+      <>
+        <HeaderPage icon={LayoutDashboard} title="Mi Condominio" subtitle="Resumen de tu unidad" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <KpiCard label="Próximas Reservas" value={String(proximasReservas.length)} icon={DoorOpen} />
+          <KpiCard label="Incidencias Abiertas" value={String(incidenciasAbiertas)} icon={AlertCircle} variant="negative" />
+        </div>
+        {proximasReservas.length > 0 && (
+          <div className="bg-white rounded-2xl border border-surface-200 shadow-sm">
+            <div className="flex items-center justify-between p-5 border-b border-surface-100">
+              <h3 className="font-bold text-surface-800">Próximas Reservas</h3>
+            </div>
+            <div className="p-5 space-y-4">
+              {proximasReservas.map((r) => (
+                <div key={r.id} className="flex items-start gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50 text-primary-600 flex-shrink-0">
+                    <span className="text-xs font-bold">{r.fecha.split("-")[2]}</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-surface-800">{r.areaComun?.nombre}</p>
+                    <p className="text-xs text-surface-500">{r.fecha} · {r.horaInicio} - {r.horaFin}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+
+  // ─── ADMIN_CONDOMINIO dashboard (full) ───────────────────
   return (
     <>
-      <HeaderPage
-        icon={LayoutDashboard}
-        title="Dashboard"
-        subtitle="Resumen general de tu condominio"
-      />
+      <HeaderPage icon={LayoutDashboard} title="Dashboard" subtitle="Resumen general de tu condominio" />
 
-      {/* KPI Cards Row */}
+      {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {kpiData.map((kpi) => (
-          <div
-            key={kpi.label}
-            className={`bg-white rounded-2xl border border-surface-200 p-5 shadow-sm ${
-              kpi.variant === "positive"
-                ? "border-l-4 border-l-green-500"
-                : kpi.variant === "negative"
-                ? "border-l-4 border-l-red-500"
-                : ""
-            }`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-medium text-surface-500 uppercase tracking-wider">
-                {kpi.label}
-              </p>
-              {kpi.icon && (
-                <kpi.icon
-                  className={`h-4 w-4 ${
-                    kpi.variant === "positive" ? "text-green-500" : "text-red-500"
-                  }`}
-                />
-              )}
-            </div>
-            <p
-              className={`text-2xl font-extrabold tabular-nums ${
-                kpi.variant === "positive"
-                  ? "text-green-600"
-                  : kpi.variant === "negative"
-                  ? "text-red-600"
-                  : "text-surface-800"
-              }`}
-            >
-              {kpi.value}
-            </p>
-          </div>
-        ))}
+        <KpiCard label="Saldo Actual" value={fmt(saldoTotal)} />
+        <KpiCard label="Ingresos del Mes" value={fmt(ingresosMes)} icon={TrendingUp} variant="positive" />
+        <KpiCard label="Egresos del Mes" value={fmt(egresosMes)} icon={TrendingDown} variant="negative" />
+        <KpiCard label="Monto Vencido" value={fmt(montoVencido)} icon={AlertCircle} variant="negative" />
       </div>
 
-      {/* Visit KPIs + Incidencias */}
+      {/* Visitas + Incidencias */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        {visitasKpi.map((v) => (
-          <div key={v.label} className="bg-white rounded-2xl border border-surface-200 p-5 shadow-sm flex items-center gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50 text-primary-600">
-              <v.icon className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-xs font-medium text-surface-500 uppercase tracking-wider">{v.label}</p>
-              <p className="text-2xl font-extrabold text-surface-800 tabular-nums">{v.value}</p>
-            </div>
-          </div>
-        ))}
-        <div className="bg-white rounded-2xl border border-surface-200 p-5 shadow-sm flex items-center gap-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-500">
-            <AlertCircle className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-surface-500 uppercase tracking-wider">Incidencias Abiertas</p>
-            <p className="text-2xl font-extrabold text-red-600 tabular-nums">{incidenciasAbiertas}</p>
-          </div>
-        </div>
+        <KpiCard label="Visitas Activas" value={String(visitasActivas)} icon={Users} />
+        <KpiCard label="Visitas del Mes" value={String(visitasMes)} icon={DoorOpen} />
+        <KpiCard label="Incidencias Abiertas" value={String(incidenciasAbiertas)} icon={AlertCircle} variant="negative" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -130,33 +280,33 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between p-5 border-b border-surface-100">
             <h3 className="font-bold text-surface-800">Top Morosos</h3>
             <Link href="/dashboard/residentes">
-              <Button variant="ghost" size="sm">
-                Ver todos
-              </Button>
+              <Button variant="ghost" size="sm">Ver todos</Button>
             </Link>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-left text-xs font-medium text-surface-500 uppercase tracking-wider">
-                  <th className="px-5 py-3">DNI</th>
-                  <th className="px-5 py-3">Nombre</th>
-                  <th className="px-5 py-3">Inmueble</th>
-                  <th className="px-5 py-3 text-right">Monto Vencido</th>
-                </tr>
-              </thead>
-              <tbody>
-                {topMorosos.map((m, i) => (
-                  <tr key={i} className="border-t border-surface-50 hover:bg-surface-50 transition-colors">
-                    <td className="px-5 py-3 text-sm text-surface-600">{m.dni}</td>
-                    <td className="px-5 py-3 text-sm font-medium text-surface-800">{m.nombre}</td>
-                    <td className="px-5 py-3 text-sm text-surface-600">{m.inmueble}</td>
-                    <td className="px-5 py-3 text-sm font-semibold text-red-600 text-right">{m.monto}</td>
+          {topMorosos.length === 0 ? (
+            <p className="p-5 text-sm text-surface-400">No hay deudas pendientes</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-left text-xs font-medium text-surface-500 uppercase tracking-wider">
+                    <th className="px-5 py-3">Nombre</th>
+                    <th className="px-5 py-3">Inmueble</th>
+                    <th className="px-5 py-3 text-right">Monto Vencido</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {topMorosos.map((m, i) => (
+                    <tr key={i} className="border-t border-surface-50 hover:bg-surface-50 transition-colors">
+                      <td className="px-5 py-3 text-sm font-medium text-surface-800">{m.nombre}</td>
+                      <td className="px-5 py-3 text-sm text-surface-600">{m.inmueble}</td>
+                      <td className="px-5 py-3 text-sm font-semibold text-red-600 text-right">{fmt(m.monto)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* Próximas Reservas */}
@@ -164,26 +314,26 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between p-5 border-b border-surface-100">
             <h3 className="font-bold text-surface-800">Próximas Reservas</h3>
             <Link href="/dashboard/areas-comunes/reservas">
-              <Button variant="ghost" size="sm">
-                Ver todas
-              </Button>
+              <Button variant="ghost" size="sm">Ver todas</Button>
             </Link>
           </div>
           <div className="p-5 space-y-4">
-            {proximasReservas.map((r, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50 text-primary-600 flex-shrink-0">
-                  <span className="text-xs font-bold">{r.fecha.split(" ")[0]}</span>
+            {proximasReservas.length === 0 ? (
+              <p className="text-sm text-surface-400">Sin reservas próximas</p>
+            ) : (
+              proximasReservas.map((r) => (
+                <div key={r.id} className="flex items-start gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50 text-primary-600 flex-shrink-0">
+                    <span className="text-xs font-bold">{r.fecha.split("-")[2]}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-surface-800">{r.areaComun?.nombre}</p>
+                    <p className="text-xs text-surface-500">{r.fecha} · {r.horaInicio} - {r.horaFin}</p>
+                    <p className="text-xs text-surface-400">Dpto {r.inmueble?.numero}</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-surface-800">{r.area}</p>
-                  <p className="text-xs text-surface-500">
-                    {r.fecha} · {r.hora}
-                  </p>
-                  <p className="text-xs text-surface-400">{r.residente}</p>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -194,7 +344,7 @@ export default function DashboardPage() {
           <h3 className="font-bold text-surface-800 mb-4">Ingresos vs Egresos — Últimos 6 meses</h3>
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={ingresosEgresosData} barGap={8}>
+              <BarChart data={ingresosEgresosChart} barGap={8}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
                 <XAxis dataKey="mes" tick={{ fontSize: 12, fill: "#64748B" }} />
                 <YAxis tick={{ fontSize: 12, fill: "#64748B" }} tickFormatter={(v) => `S/ ${(v / 1000).toFixed(0)}k`} />
@@ -206,21 +356,70 @@ export default function DashboardPage() {
             </ResponsiveContainer>
           </div>
         </div>
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-surface-200 shadow-sm p-5">
-          <h3 className="font-bold text-surface-800 mb-4">Distribución de Egresos</h3>
-          <div className="h-[280px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={egresosData} dataKey="monto" nameKey="categoria" cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={3}>
-                  {egresosData.map((d, i) => <Cell key={i} fill={d.fill} />)}
-                </Pie>
-                <Tooltip formatter={(v) => [`S/ ${Number(v).toLocaleString()}`, ""]} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+        {egresosChart.length > 0 && (
+          <div className="lg:col-span-2 bg-white rounded-2xl border border-surface-200 shadow-sm p-5">
+            <h3 className="font-bold text-surface-800 mb-4">Distribución de Egresos</h3>
+            <div className="h-[280px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={egresosChart} dataKey="monto" nameKey="categoria" cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={3}>
+                    {egresosChart.map((d, i) => <Cell key={i} fill={d.fill} />)}
+                  </Pie>
+                  <Tooltip formatter={(v) => [`S/ ${Number(v).toLocaleString()}`, ""]} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </>
+  );
+}
+
+// ─── Shared KPI Card ───────────────────────────────────────
+function KpiCard({
+  label,
+  value,
+  icon: Icon,
+  variant,
+}: {
+  label: string;
+  value: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  variant?: "positive" | "negative" | "default";
+}) {
+  return (
+    <div
+      className={`bg-white rounded-2xl border border-surface-200 p-5 shadow-sm ${
+        variant === "positive"
+          ? "border-l-4 border-l-green-500"
+          : variant === "negative"
+          ? "border-l-4 border-l-red-500"
+          : ""
+      }`}
+    >
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs font-medium text-surface-500 uppercase tracking-wider">{label}</p>
+        {Icon && (
+          <Icon
+            className={`h-4 w-4 ${
+              variant === "positive" ? "text-green-500" : variant === "negative" ? "text-red-500" : "text-surface-400"
+            }`}
+          />
+        )}
+      </div>
+      <p
+        className={`text-2xl font-extrabold tabular-nums ${
+          variant === "positive"
+            ? "text-green-600"
+            : variant === "negative"
+            ? "text-red-600"
+            : "text-surface-800"
+        }`}
+      >
+        {value}
+      </p>
+    </div>
   );
 }
