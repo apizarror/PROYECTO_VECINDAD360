@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       include: { condominio: true },
     });
 
-    if (!user) {
+    if (!user || !user.activo) {
       return NextResponse.json(
         { error: "Credenciales inválidas" },
         { status: 401 }
@@ -45,7 +45,11 @@ export async function POST(request: Request) {
         email: user.email,
         nombre: user.nombre,
         apellidos: user.apellidos,
+        dni: user.dni,
+        telefono: user.telefono,
         rol: user.rol,
+        avatar: user.avatar,
+        condominioId: user.condominioId,
       },
       condominio: user.condominio
         ? {
@@ -53,6 +57,7 @@ export async function POST(request: Request) {
             nombre: user.condominio.nombre,
             plan: user.condominio.plan,
             trialEndsAt: user.condominio.trialEndsAt,
+            modalidad: user.condominio.modalidad,
           }
         : null,
     });

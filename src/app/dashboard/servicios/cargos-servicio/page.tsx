@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
 import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
+import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 
@@ -44,12 +45,14 @@ const schema = z.object({
   tarifa: z.number().min(0),
   monto: z.number().min(0),
   estado: z.enum(["Pendiente", "Pagado"]),
+  registradoPor: z.string().optional(),
 });
 
 const periodos = ["Todos", "2026-05", "2026-04", "2026-03"];
 const servicios = ["Todos", "Agua", "Luz Áreas Comunes", "Gas"];
 
 export default function CargosServicioPage() {
+  const { user } = useAuth();
   const { data: cargosServicio = [], isLoading } = useApiList<CargoServicio>("cargos-servicio");
   const { data: inmuebles = [] } = useApiList<Inmueble>("inmuebles");
   const createMutation = useApiCreate<CargoServicio>("cargos-servicio");
@@ -77,12 +80,13 @@ export default function CargosServicioPage() {
   const handleSubmit = useCallback(
     async (data: Record<string, unknown>) => {
       const id = (data.id as string) || crypto.randomUUID();
-      const item = { ...data, id } as unknown as CargoServicio;
+      const registradoPor = (data.registradoPor as string) || (user ? `${user.nombre} ${user.apellidos}` : "Sistema");
+      const item = { ...data, id, registradoPor } as unknown as CargoServicio;
       if (form?.mode === "edit") await updateMutation.mutateAsync(item);
       else await createMutation.mutateAsync(item);
       setForm(null);
     },
-    [form, createMutation, updateMutation]
+    [form, createMutation, updateMutation, user]
   );
 
   const fields = [

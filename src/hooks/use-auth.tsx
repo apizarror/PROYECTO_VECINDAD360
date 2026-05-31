@@ -161,6 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Trial check -------------------------------------------------------------
   const trialExpired =
+    condominio?.plan === "TRIAL" &&
     condominio?.trialEndsAt != null &&
     new Date(condominio.trialEndsAt) < new Date();
 

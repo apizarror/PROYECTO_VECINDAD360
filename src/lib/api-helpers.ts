@@ -3,10 +3,12 @@ import { prisma } from "@/lib/prisma";
 import { getSession, isTrialExpired } from "@/lib/auth";
 
 const DEMO_EMAIL = "demo@vecindad360.com";
+const EMPLEADO_WRITABLE_MODELS = ["visita", "incidencia", "movimientoVehicular"];
 
 interface HandlerOptions {
   model: string;
-  include?: Record<string, boolean>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  include?: Record<string, any>;
   allowedRoles?: string[];
 }
 
@@ -64,6 +66,14 @@ export function createCreateHandler(options: HandlerOptions) {
 
       if (user!.email === DEMO_EMAIL) {
         return NextResponse.json({ error: "La cuenta demo es solo lectura" }, { status: 403 });
+      }
+
+      if (user!.rol === "RESIDENTE") {
+        return NextResponse.json({ error: "Sin permisos para esta acción" }, { status: 403 });
+      }
+
+      if (user!.rol === "EMPLEADO" && !EMPLEADO_WRITABLE_MODELS.includes(options.model)) {
+        return NextResponse.json({ error: "Sin permisos para esta acción" }, { status: 403 });
       }
 
       const body = await request.json();
@@ -132,6 +142,14 @@ export function createUpdateHandler(options: HandlerOptions) {
         return NextResponse.json({ error: "La cuenta demo es solo lectura" }, { status: 403 });
       }
 
+      if (user!.rol === "RESIDENTE") {
+        return NextResponse.json({ error: "Sin permisos para esta acción" }, { status: 403 });
+      }
+
+      if (user!.rol === "EMPLEADO" && !EMPLEADO_WRITABLE_MODELS.includes(options.model)) {
+        return NextResponse.json({ error: "Sin permisos para esta acción" }, { status: 403 });
+      }
+
       const { id } = await params;
       const body = await request.json();
       const model = getModel(options.model);
@@ -172,6 +190,14 @@ export function createDeleteHandler(options: HandlerOptions) {
 
       if (user!.email === DEMO_EMAIL) {
         return NextResponse.json({ error: "La cuenta demo es solo lectura" }, { status: 403 });
+      }
+
+      if (user!.rol === "RESIDENTE") {
+        return NextResponse.json({ error: "Sin permisos para esta acción" }, { status: 403 });
+      }
+
+      if (user!.rol === "EMPLEADO" && !EMPLEADO_WRITABLE_MODELS.includes(options.model)) {
+        return NextResponse.json({ error: "Sin permisos para esta acción" }, { status: 403 });
       }
 
       const { id } = await params;

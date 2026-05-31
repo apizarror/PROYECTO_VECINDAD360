@@ -88,13 +88,18 @@ export async function POST(request: Request) {
         email: user.email,
         nombre: user.nombre,
         apellidos: user.apellidos,
+        dni: user.dni,
+        telefono: user.telefono,
         rol: user.rol,
+        avatar: user.avatar,
+        condominioId: condominio.id,
       },
       condominio: {
         id: condominio.id,
         nombre: condominio.nombre,
         plan: condominio.plan,
         trialEndsAt: condominio.trialEndsAt,
+        modalidad: condominio.modalidad,
       },
     });
   } catch (error) {
