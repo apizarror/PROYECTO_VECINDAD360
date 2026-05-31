@@ -146,7 +146,7 @@ export default function DashboardPage() {
   );
 
   const visitasActivas = useMemo(
-    () => visitas.filter((v) => v.estado === "En curso" || v.estado === "Programada").length,
+    () => visitas.filter((v) => v.estado === "Activa" || v.estado === "Programada").length,
     [visitas]
   );
 
@@ -156,7 +156,7 @@ export default function DashboardPage() {
   );
 
   const incidenciasAbiertas = useMemo(
-    () => incidencias.filter((i) => i.estado === "Abierta" || i.estado === "En Progreso").length,
+    () => incidencias.filter((i) => i.estado === "Abierta" || i.estado === "En proceso").length,
     [incidencias]
   );
 

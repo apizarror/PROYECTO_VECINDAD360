@@ -9,7 +9,6 @@ import Link from "next/link";
 import { Eye, EyeOff, ArrowLeft, ArrowRight, Building2, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { getBasePath } from "@/lib/base-path";
 import { cn } from "@/lib/utils";
 
 const schema = z.object({
@@ -45,22 +44,21 @@ export default function RegisterPage() {
   const onSubmit = async (data: FormData) => {
     setError("");
     try {
-      const res = await fetch(`${getBasePath()}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, modalidad }),
+      const success = await registerUser({
+        email: data.email,
+        password: data.password,
+        nombre: data.nombre,
+        apellidos: data.apellidos,
+        telefono: data.telefono,
+        condominioNombre: data.condominioNombre,
+        direccion: data.direccion,
+        modalidad: modalidad || undefined,
       });
 
-      if (res.ok) {
-        const json = await res.json();
-        // Trigger a session refresh by calling register which sets user state
-        // But since we already called the API directly, let's just redirect
-        // We need to update auth state - simplest: reload to /dashboard
+      if (success) {
         router.push("/dashboard");
-        router.refresh();
       } else {
-        const json = await res.json();
-        setError(json.error || "Error al registrar");
+        setError("Error al registrar");
       }
     } catch {
       setError("Error de conexion");

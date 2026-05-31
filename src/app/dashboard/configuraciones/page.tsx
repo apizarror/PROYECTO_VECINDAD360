@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { Settings, Plus, Edit, Trash2, Building2, Layers, Loader2 } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import { Settings, Plus, Edit, Trash2, Building2, Layers, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
 import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
+import { getBasePath } from "@/lib/base-path";
 import { z } from "zod";
 import type { GrupoRubro, ServicioRubro, ConfiguracionCondominio } from "@/types";
 
@@ -57,7 +58,7 @@ export default function ConfiguracionesPage() {
   const updateServicio = useApiUpdate<ServicioRubro>("servicios-rubro");
   const deleteServicioMutation = useApiDelete("servicios-rubro");
 
-  // Condominio config (single record, mutable locally for now)
+  // Condominio config (fetched from API)
   const [config, setConfig] = useState<ConfiguracionCondominio>({
     razonSocial: "",
     ruc: "",
@@ -70,8 +71,38 @@ export default function ConfiguracionesPage() {
     pasarelaPago: "Ninguna",
     smtpHost: "",
   });
+  const [loadingCondominio, setLoadingCondominio] = useState(true);
+  const [condominioFeedback, setCondominioFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-  const isLoading = loadingGrupos || loadingServicios;
+  useEffect(() => {
+    async function fetchCondominio() {
+      try {
+        const res = await fetch(`${getBasePath()}/api/condominio`);
+        if (res.ok) {
+          const data = await res.json();
+          setConfig({
+            razonSocial: data.razonSocial || "",
+            ruc: data.ruc || "",
+            direccion: data.direccion || "",
+            colorPrimario: data.colorPrimario || "#2563EB",
+            zonaHoraria: data.zonaHoraria || "America/Lima",
+            moneda: data.moneda || "PEN",
+            moraDiaria: data.moraDiaria ?? 0.05,
+            whatsappBusinessId: data.whatsappBusinessId || "",
+            pasarelaPago: data.pasarelaPago || "Ninguna",
+            smtpHost: data.smtpHost || "",
+          });
+        }
+      } catch {
+        // ignore – defaults remain
+      } finally {
+        setLoadingCondominio(false);
+      }
+    }
+    fetchCondominio();
+  }, []);
+
+  const isLoading = loadingGrupos || loadingServicios || loadingCondominio;
 
   // Rubros forms
   const [grupoForm, setGrupoForm] = useState<{ mode: "create" | "edit"; item?: GrupoRubro } | null>(null);
@@ -122,8 +153,36 @@ export default function ConfiguracionesPage() {
   }, [deleteTarget, deleteGrupoMutation, deleteServicioMutation]);
 
   const handleCondominioSubmit = useCallback(
-    (data: Record<string, unknown>) => {
-      setConfig(data as unknown as ConfiguracionCondominio);
+    async (data: Record<string, unknown>) => {
+      setCondominioFeedback(null);
+      try {
+        const res = await fetch(`${getBasePath()}/api/condominio`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setConfig({
+            razonSocial: updated.razonSocial || "",
+            ruc: updated.ruc || "",
+            direccion: updated.direccion || "",
+            colorPrimario: updated.colorPrimario || "#2563EB",
+            zonaHoraria: updated.zonaHoraria || "America/Lima",
+            moneda: updated.moneda || "PEN",
+            moraDiaria: updated.moraDiaria ?? 0.05,
+            whatsappBusinessId: updated.whatsappBusinessId || "",
+            pasarelaPago: updated.pasarelaPago || "Ninguna",
+            smtpHost: updated.smtpHost || "",
+          });
+          setCondominioFeedback({ type: "success", message: "Configuracion guardada correctamente" });
+        } else {
+          const err = await res.json();
+          setCondominioFeedback({ type: "error", message: err.error || "Error al guardar" });
+        }
+      } catch {
+        setCondominioFeedback({ type: "error", message: "Error de conexion" });
+      }
       setEditCondominio(false);
     },
     []
@@ -295,6 +354,16 @@ export default function ConfiguracionesPage() {
 
       {/* Tab: Condominio */}
       {activeTab === "condominio" && (
+        <div className="space-y-4">
+        {condominioFeedback && (
+          <div className={cn(
+            "flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm",
+            condominioFeedback.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+          )}>
+            {condominioFeedback.type === "success" ? <CheckCircle className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+            {condominioFeedback.message}
+          </div>
+        )}
         <div className="bg-white rounded-2xl border border-surface-200 shadow-sm">
           <div className="flex items-center justify-between px-6 py-4 border-b border-surface-100">
             <div className="flex items-center gap-3">
@@ -325,6 +394,7 @@ export default function ConfiguracionesPage() {
             <InfoField label="WhatsApp Business" value={config.whatsappBusinessId || "—"} />
             <InfoField label="SMTP Host" value={config.smtpHost || "—"} />
           </div>
+        </div>
         </div>
       )}
 

@@ -9,7 +9,7 @@ import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
 import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
-import type { CuentaBancaria } from "@/types";
+import type { CuentaBancaria, Persona } from "@/types";
 
 interface IngresoWithRelations {
   id: string;
@@ -47,6 +47,7 @@ export default function IngresosPage() {
   const updateMutation = useApiUpdate<IngresoWithRelations>("ingresos");
   const deleteMutation = useApiDelete("ingresos");
   const { data: cuentasBancarias = [] } = useApiList<CuentaBancaria>("cuentas-bancarias");
+  const { data: personas = [] } = useApiList<Persona>("personas");
   const [search, setSearch] = useState("");
   const [origenFilter, setOrigenFilter] = useState("Todos");
   const [form, setForm] = useState<{ mode: "create" | "edit"; item?: IngresoWithRelations } | null>(null);
@@ -83,7 +84,7 @@ export default function IngresosPage() {
     { name: "concepto", label: "Concepto", type: "text" as const },
     { name: "monto", label: "Monto (S/)", type: "number" as const },
     { name: "origen", label: "Origen", type: "select" as const, options: ["Cuota", "Multa", "Reserva", "Donacion", "Otro"].map(o => ({ label: o, value: o })) },
-    { name: "personaId", label: "Residente (opcional)", type: "text" as const },
+    { name: "personaId", label: "Residente (opcional)", type: "select" as const, options: [{ label: "— Ninguno —", value: "" }, ...personas.map(p => ({ label: `${p.nombres} ${p.apellidos}`, value: p.id }))] },
     { name: "cuentaBancariaId", label: "Cuenta bancaria", type: "select" as const, options: cuentasBancarias.map(c => ({ label: `${c.banco} - ${c.tipo}`, value: c.id })) },
     { name: "metodoPago", label: "Metodo de pago", type: "select" as const, options: ["Efectivo", "Transferencia", "Yape", "Plin", "Tarjeta"].map(m => ({ label: m, value: m })) },
     { name: "fecha", label: "Fecha", type: "text" as const },
