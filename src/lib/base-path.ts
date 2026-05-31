@@ -1,9 +1,11 @@
-/** Returns the Next.js basePath (e.g. "/vecindad360") or "" if none is set. */
+/**
+ * Returns the Next.js basePath (e.g. "/vecindad360") or "" if none is set.
+ *
+ * Reads from `process.env.NEXT_PUBLIC_BASE_PATH`, which Next inlines into the
+ * client bundle at build time (configured in `next.config.ts`). The App Router
+ * does NOT expose `window.__NEXT_DATA__`, so we can't rely on it like the
+ * Pages Router did.
+ */
 export function getBasePath(): string {
-  if (typeof window !== "undefined") {
-    const data = (window as unknown as Record<string, { basePath?: string }>)
-      .__NEXT_DATA__;
-    return data?.basePath || "";
-  }
-  return "";
+  return process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 }

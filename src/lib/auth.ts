@@ -1,33 +1,23 @@
 import { prisma } from "./prisma";
 import { cookies } from "next/headers";
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
 
 const SESSION_COOKIE = "vecindad360_session";
 const SESSION_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 // ─── Password Hashing ─────────────────────────
+// bcrypt is used so the format matches the seed (`prisma/seed.mts`).
 
 export async function hashPassword(password: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const salt = crypto.randomBytes(16).toString("hex");
-    crypto.scrypt(password, salt, 64, (err, derivedKey) => {
-      if (err) reject(err);
-      resolve(`${salt}:${derivedKey.toString("hex")}`);
-    });
-  });
+  return bcrypt.hash(password, 10);
 }
 
 export async function verifyPassword(
   password: string,
   hash: string
 ): Promise<boolean> {
-  return new Promise((resolve, reject) => {
-    const [salt, key] = hash.split(":");
-    crypto.scrypt(password, salt, 64, (err, derivedKey) => {
-      if (err) reject(err);
-      resolve(derivedKey.toString("hex") === key);
-    });
-  });
+  return bcrypt.compare(password, hash);
 }
 
 // ─── Session Management ───────────────────────
