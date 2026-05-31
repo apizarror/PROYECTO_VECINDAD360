@@ -679,6 +679,49 @@ async function main() {
   }
   console.log(`${notificacionesData.length} notificaciones creadas.`)
 
+  // ─── Permisos por Rol (RolePermission) ───────
+  await prisma.rolePermission.deleteMany()
+
+  const permisosData: { rol: string; modulo: string; leer: boolean; escribir: boolean }[] = [
+    // ADMIN_CONDOMINIO
+    { rol: 'ADMIN_CONDOMINIO', modulo: 'Dashboard', leer: true, escribir: true },
+    { rol: 'ADMIN_CONDOMINIO', modulo: 'Residentes', leer: true, escribir: true },
+    { rol: 'ADMIN_CONDOMINIO', modulo: 'Areas Comunes', leer: true, escribir: true },
+    { rol: 'ADMIN_CONDOMINIO', modulo: 'Inmobiliaria', leer: true, escribir: true },
+    { rol: 'ADMIN_CONDOMINIO', modulo: 'Empleados', leer: true, escribir: true },
+    { rol: 'ADMIN_CONDOMINIO', modulo: 'Financiero', leer: true, escribir: true },
+    { rol: 'ADMIN_CONDOMINIO', modulo: 'Servicios', leer: true, escribir: true },
+    { rol: 'ADMIN_CONDOMINIO', modulo: 'Incidencias', leer: true, escribir: true },
+    { rol: 'ADMIN_CONDOMINIO', modulo: 'Tareas', leer: true, escribir: true },
+    { rol: 'ADMIN_CONDOMINIO', modulo: 'Vehiculos', leer: true, escribir: true },
+    { rol: 'ADMIN_CONDOMINIO', modulo: 'Visitas', leer: true, escribir: true },
+    { rol: 'ADMIN_CONDOMINIO', modulo: 'Archivos', leer: true, escribir: true },
+    { rol: 'ADMIN_CONDOMINIO', modulo: 'Reportes', leer: true, escribir: false },
+    { rol: 'ADMIN_CONDOMINIO', modulo: 'Configuraciones', leer: true, escribir: true },
+    { rol: 'ADMIN_CONDOMINIO', modulo: 'Notificaciones', leer: true, escribir: false },
+    // EMPLEADO
+    { rol: 'EMPLEADO', modulo: 'Dashboard', leer: true, escribir: false },
+    { rol: 'EMPLEADO', modulo: 'Incidencias', leer: true, escribir: true },
+    { rol: 'EMPLEADO', modulo: 'Tareas', leer: true, escribir: true },
+    { rol: 'EMPLEADO', modulo: 'Vehiculos', leer: true, escribir: true },
+    { rol: 'EMPLEADO', modulo: 'Visitas', leer: true, escribir: true },
+    { rol: 'EMPLEADO', modulo: 'Notificaciones', leer: true, escribir: false },
+    // RESIDENTE
+    { rol: 'RESIDENTE', modulo: 'Dashboard', leer: true, escribir: false },
+    { rol: 'RESIDENTE', modulo: 'Areas Comunes', leer: true, escribir: false },
+    { rol: 'RESIDENTE', modulo: 'Archivos', leer: true, escribir: false },
+    { rol: 'RESIDENTE', modulo: 'Notificaciones', leer: true, escribir: false },
+  ]
+
+  for (const p of permisosData) {
+    await prisma.rolePermission.upsert({
+      where: { rol_modulo: { rol: p.rol, modulo: p.modulo } },
+      update: { leer: p.leer, escribir: p.escribir },
+      create: p,
+    })
+  }
+  console.log(`${permisosData.length} permisos de rol creados.`)
+
   // ─── Credenciales ────────────────────────────
   console.log('\n========================================')
   console.log('  SEED COMPLETADO EXITOSAMENTE')

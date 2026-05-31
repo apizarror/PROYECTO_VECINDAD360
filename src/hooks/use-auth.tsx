@@ -46,9 +46,16 @@ export interface RegisterData {
   modalidad?: "AUTOGESTION" | "ADMINISTRADO";
 }
 
+export interface Permission {
+  modulo: string;
+  leer: boolean;
+  escribir: boolean;
+}
+
 interface AuthContextType {
   user: User | null;
   condominio: Condominio | null;
+  permissions: Permission[];
   trialExpired: boolean;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -64,6 +71,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   condominio: null,
+  permissions: [],
   trialExpired: false,
   isAuthenticated: false,
   isLoading: true,
@@ -79,7 +87,21 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [condominio, setCondominio] = useState<Condominio | null>(null);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch permissions for the current user's role
+  const fetchPermissions = useCallback(async () => {
+    try {
+      const res = await fetch(`${getBasePath()}/api/auth/permissions`);
+      if (res.ok) {
+        const data: Permission[] = await res.json();
+        setPermissions(data);
+      }
+    } catch {
+      // ignore - fallback to hardcoded permissions
+    }
+  }, []);
 
   // Check session on mount
   useEffect(() => {
@@ -93,6 +115,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (!cancelled) {
             setUser(data.user ?? null);
             setCondominio(data.condominio ?? null);
+            // Load permissions from DB after session verified
+            fetchPermissions();
           }
         }
       } catch {
@@ -122,11 +146,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
       setUser(data.user ?? null);
       setCondominio(data.condominio ?? null);
+      fetchPermissions();
       return true;
     } catch {
       return false;
     }
-  }, []);
+  }, [fetchPermissions]);
 
   // Register ----------------------------------------------------------------
   const register = useCallback(async (data: RegisterData) => {
@@ -142,11 +167,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const json = await res.json();
       setUser(json.user ?? null);
       setCondominio(json.condominio ?? null);
+      fetchPermissions();
       return true;
     } catch {
       return false;
     }
-  }, []);
+  }, [fetchPermissions]);
 
   // Logout ------------------------------------------------------------------
   const logout = useCallback(async () => {
@@ -157,6 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setUser(null);
     setCondominio(null);
+    setPermissions([]);
   }, []);
 
   // Trial check -------------------------------------------------------------
@@ -170,6 +197,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         condominio,
+        permissions,
         trialExpired,
         isAuthenticated: !!user,
         isLoading,

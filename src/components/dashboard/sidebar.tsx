@@ -19,6 +19,7 @@ import {
   FolderOpen,
   BarChart3,
   Shield,
+  Lock,
   Settings,
   ChevronDown,
   ChevronLeft,
@@ -28,7 +29,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
-import { canSeeMenuItem, getVisibleGroups, ROL_LABELS, type Rol } from "@/lib/permissions";
+import { canSeeMenuItemWithDb, getVisibleGroups, ROL_LABELS, type Rol } from "@/lib/permissions";
 
 interface SubMenuItem {
   label: string;
@@ -147,6 +148,11 @@ const adminMenuGroup: MenuGroup = {
       icon: Users,
       href: "/dashboard/admin/usuarios",
     },
+    {
+      label: "Permisos",
+      icon: Lock,
+      href: "/dashboard/admin/permisos",
+    },
   ],
 };
 
@@ -163,7 +169,7 @@ export function Sidebar({
   onCloseMobile?: () => void;
 }) {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, permissions } = useAuth();
   const rol = (user?.rol || "ADMIN_CONDOMINIO") as Rol;
   const allowedGroupHeaders = getVisibleGroups(rol);
 
@@ -172,7 +178,7 @@ export function Sidebar({
     .filter((group) => allowedGroupHeaders.includes(group.header))
     .map((group) => ({
       ...group,
-      items: group.items.filter((item) => canSeeMenuItem(rol, item.label)),
+      items: group.items.filter((item) => canSeeMenuItemWithDb(rol, item.label, permissions)),
     }))
     .filter((group) => group.items.length > 0);
 

@@ -550,6 +550,20 @@ model ServicioRubro {
   updatedAt      DateTime   @updatedAt
 }
 
+// ─── Permisos por Rol ─────────────────────
+
+model RolePermission {
+  id        String   @id @default(cuid())
+  rol       String   // ADMIN_CONDOMINIO, EMPLEADO, RESIDENTE
+  modulo    String   // Dashboard, Residentes, Financiero, etc.
+  leer      Boolean  @default(false)
+  escribir  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([rol, modulo])
+}
+
 // ─── Archivos y Notificaciones ─────────────
 
 model Archivo {

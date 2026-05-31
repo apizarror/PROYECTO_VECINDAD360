@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession, isTrialExpired } from "@/lib/auth";
+import { MODEL_TO_MODULE } from "@/lib/permissions";
+import { getPermissionsForRole } from "@/lib/permissions-db";
 
 const DEMO_EMAIL = "demo@vecindad360.com";
 const EMPLEADO_WRITABLE_MODELS = ["visita", "incidencia", "movimientoVehicular"];
@@ -33,6 +35,31 @@ async function authenticate(allowedRoles?: string[]) {
   }
 
   return { error: null, user };
+}
+
+/**
+ * Check if a user's role has write permission for a given Prisma model,
+ * using DB permissions with fallback to the hardcoded list.
+ */
+async function hasWritePermission(rol: string, modelName: string): Promise<boolean> {
+  if (rol === "SUPER_ADMIN" || rol === "ADMIN_CONDOMINIO") return true;
+
+  const moduleName = MODEL_TO_MODULE[modelName];
+  if (!moduleName) return false;
+
+  try {
+    const dbPerms = await getPermissionsForRole(rol);
+    if (dbPerms.length > 0) {
+      const perm = dbPerms.find((p) => p.modulo === moduleName);
+      return perm?.escribir ?? false;
+    }
+  } catch {
+    // fallback to hardcoded
+  }
+
+  // Fallback: use hardcoded list
+  if (rol === "EMPLEADO") return EMPLEADO_WRITABLE_MODELS.includes(modelName);
+  return false;
 }
 
 export function createListHandler(options: HandlerOptions) {
@@ -68,11 +95,7 @@ export function createCreateHandler(options: HandlerOptions) {
         return NextResponse.json({ error: "La cuenta demo es solo lectura" }, { status: 403 });
       }
 
-      if (user!.rol === "RESIDENTE") {
-        return NextResponse.json({ error: "Sin permisos para esta acción" }, { status: 403 });
-      }
-
-      if (user!.rol === "EMPLEADO" && !EMPLEADO_WRITABLE_MODELS.includes(options.model)) {
+      if (!(await hasWritePermission(user!.rol, options.model))) {
         return NextResponse.json({ error: "Sin permisos para esta acción" }, { status: 403 });
       }
 
@@ -142,11 +165,7 @@ export function createUpdateHandler(options: HandlerOptions) {
         return NextResponse.json({ error: "La cuenta demo es solo lectura" }, { status: 403 });
       }
 
-      if (user!.rol === "RESIDENTE") {
-        return NextResponse.json({ error: "Sin permisos para esta acción" }, { status: 403 });
-      }
-
-      if (user!.rol === "EMPLEADO" && !EMPLEADO_WRITABLE_MODELS.includes(options.model)) {
+      if (!(await hasWritePermission(user!.rol, options.model))) {
         return NextResponse.json({ error: "Sin permisos para esta acción" }, { status: 403 });
       }
 
@@ -192,11 +211,7 @@ export function createDeleteHandler(options: HandlerOptions) {
         return NextResponse.json({ error: "La cuenta demo es solo lectura" }, { status: 403 });
       }
 
-      if (user!.rol === "RESIDENTE") {
-        return NextResponse.json({ error: "Sin permisos para esta acción" }, { status: 403 });
-      }
-
-      if (user!.rol === "EMPLEADO" && !EMPLEADO_WRITABLE_MODELS.includes(options.model)) {
+      if (!(await hasWritePermission(user!.rol, options.model))) {
         return NextResponse.json({ error: "Sin permisos para esta acción" }, { status: 403 });
       }
 
