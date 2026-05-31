@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getBasePath } from "@/lib/base-path";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,7 +34,7 @@ export function ContactForm() {
   const onSubmit = async (data: FormData) => {
     setSubmitError(false);
     try {
-      const res = await fetch("/api/contact", {
+      const res = await fetch(`${getBasePath()}/api/contact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),

@@ -8,6 +8,7 @@ import {
   useEffect,
   type ReactNode,
 } from "react";
+import { getBasePath } from "@/lib/base-path";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -86,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     async function checkSession() {
       try {
-        const res = await fetch("/api/auth/me");
+        const res = await fetch(`${getBasePath()}/api/auth/me`);
         if (res.ok) {
           const data = await res.json();
           if (!cancelled) {
@@ -110,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Login -------------------------------------------------------------------
   const login = useCallback(async (email: string, password: string) => {
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(`${getBasePath()}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -130,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Register ----------------------------------------------------------------
   const register = useCallback(async (data: RegisterData) => {
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch(`${getBasePath()}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -150,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Logout ------------------------------------------------------------------
   const logout = useCallback(async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await fetch(`${getBasePath()}/api/auth/logout`, { method: "POST" });
     } catch {
       // best-effort
     }

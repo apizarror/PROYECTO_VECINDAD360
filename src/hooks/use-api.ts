@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getBasePath } from "@/lib/base-path";
 
 // ---------------------------------------------------------------------------
 // Generic fetch wrapper
@@ -10,7 +11,7 @@ export async function apiFetch<T>(
   url: string,
   options?: RequestInit,
 ): Promise<T> {
-  const res = await fetch(url, {
+  const res = await fetch(`${getBasePath()}${url}`, {
     headers: { "Content-Type": "application/json", ...options?.headers },
     ...options,
   });

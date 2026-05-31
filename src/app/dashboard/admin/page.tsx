@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Shield, Building2, Users, Home, Landmark } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { useAuth } from "@/hooks/use-auth";
+import { getBasePath } from "@/lib/base-path";
 
 interface Metrics {
   totalCondominios: number;
@@ -39,7 +40,7 @@ export default function AdminDashboardPage() {
 
     async function fetchMetrics() {
       try {
-        const res = await fetch("/api/admin/metricas");
+        const res = await fetch(`${getBasePath()}/api/admin/metricas`);
         if (res.ok) {
           setMetrics(await res.json());
         }

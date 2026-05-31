@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Building2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { useAuth } from "@/hooks/use-auth";
+import { getBasePath } from "@/lib/base-path";
 import { cn } from "@/lib/utils";
 
 interface CondominioRow {
@@ -37,7 +38,7 @@ export default function AdminCondominiosPage() {
 
   const fetchCondominios = useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/condominios");
+      const res = await fetch(`${getBasePath()}/api/admin/condominios`);
       if (res.ok) {
         setCondominios(await res.json());
       }
@@ -59,7 +60,7 @@ export default function AdminCondominiosPage() {
   ) => {
     setUpdating(id);
     try {
-      const res = await fetch(`/api/admin/condominios/${id}`, {
+      const res = await fetch(`${getBasePath()}/api/admin/condominios/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),

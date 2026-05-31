@@ -9,6 +9,7 @@ import Link from "next/link";
 import { Eye, EyeOff, ArrowLeft, ArrowRight, Building2, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { getBasePath } from "@/lib/base-path";
 import { cn } from "@/lib/utils";
 
 const schema = z.object({
@@ -44,7 +45,7 @@ export default function RegisterPage() {
   const onSubmit = async (data: FormData) => {
     setError("");
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch(`${getBasePath()}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...data, modalidad }),
