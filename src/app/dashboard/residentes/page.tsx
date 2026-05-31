@@ -59,29 +59,34 @@ export default function ResidentesPage() {
 
   const handleSubmit = useCallback(
     async (data: Record<string, unknown>) => {
-      const id = (data.id as string) || crypto.randomUUID();
-      const item: Persona = {
-        id,
-        tipo: data.tipo as "Natural" | "Jurídica",
-        documento: data.documento as string,
-        nombres: data.nombres as string,
-        apellidos: data.apellidos as string,
-        razonSocial: data.razonSocial as string | undefined,
-        genero: data.genero as "M" | "F" | undefined,
-        fechaNacimiento: data.fechaNacimiento as string | undefined,
-        contactos: [
-          ...(data.email ? [{ tipo: "email" as const, valor: data.email as string }] : []),
-          ...(data.telefono ? [{ tipo: "telefono" as const, valor: data.telefono as string }] : []),
-        ],
-        vinculaciones: (form?.item?.vinculaciones) || [],
-        saldo: (data.saldo as number) || 0,
-        activo: data.activo !== false,
-      };
-
       if (form?.mode === "edit") {
-        await updateMutation.mutateAsync(item);
+        // For UPDATE: only send persona fields (no nested contactos)
+        await updateMutation.mutateAsync({
+          id: data.id as string,
+          tipo: data.tipo as "Natural" | "Jurídica",
+          documento: data.documento as string,
+          nombres: data.nombres as string,
+          apellidos: data.apellidos as string,
+          genero: data.genero as "M" | "F" | undefined,
+        } as Persona);
       } else {
-        await createMutation.mutateAsync(item);
+        // For CREATE: use Prisma nested create syntax for contactos
+        const body: Record<string, unknown> = {
+          tipo: data.tipo,
+          documento: data.documento,
+          nombres: data.nombres,
+          apellidos: data.apellidos,
+          genero: data.genero,
+          saldo: 0,
+          activo: true,
+          contactos: {
+            create: [
+              ...(data.email ? [{ tipo: "email", valor: data.email as string }] : []),
+              ...(data.telefono ? [{ tipo: "telefono", valor: data.telefono as string }] : []),
+            ],
+          },
+        };
+        await createMutation.mutateAsync(body as unknown as Persona);
       }
       setForm(null);
     },
@@ -211,7 +216,7 @@ export default function ResidentesPage() {
                     {r.contactos[0]?.valor || "—"}
                   </td>
                   <td className="px-5 py-3 text-sm text-surface-600">
-                    {r.vinculaciones[0]?.inmuebleLabel || "—"}
+                    {r.vinculaciones[0]?.inmueble?.numero || "—"}
                   </td>
                   <td className="px-5 py-3 text-sm font-semibold text-right tabular-nums">
                     <span className={r.saldo < 0 ? "text-red-600" : r.saldo > 0 ? "text-green-600" : "text-surface-400"}>

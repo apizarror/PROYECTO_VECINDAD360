@@ -74,7 +74,7 @@ export interface Contacto {
 
 export interface VinculacionInmueble {
   inmuebleId: string;
-  inmuebleLabel: string;
+  inmueble?: { numero: string; piso: number };
   rol: "Propietario" | "Inquilino" | "Familiar";
 }
 
@@ -298,12 +298,12 @@ export interface Vehiculo {
   color: string;
   ano: number;
   tipo: "Auto" | "Moto" | "Bicicleta";
-  residenteId: string;
-  residenteNombre: string;
-  inmuebleId: string;
-  inmuebleLabel: string;
-  espacioEstacionamiento: string;
-  sticker: string;
+  personaId: string;
+  persona?: { nombres: string; apellidos: string };
+  inmuebleId?: string;
+  inmueble?: { numero: string };
+  espacioEstacionamiento?: string;
+  sticker?: string;
   estado: "Activo" | "Inactivo";
 }
 
@@ -324,14 +324,14 @@ export interface Visita {
   visitanteDni: string;
   visitanteNombre: string;
   inmuebleId: string;
-  inmuebleLabel: string;
-  residenteId: string;
-  residenteNombre: string;
+  inmueble?: { numero: string };
+  personaId: string;
+  persona?: { nombres: string; apellidos: string };
   motivo: string;
   fechaHoraIngreso: string;
   fechaHoraSalida?: string;
   estado: "Activa" | "Programada" | "Completada" | "Rechazada";
-  qrGenerado: string;
+  qrGenerado?: string;
   vehiculoPlaca?: string;
 }
 

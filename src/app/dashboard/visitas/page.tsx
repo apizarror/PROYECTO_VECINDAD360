@@ -9,21 +9,18 @@ import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
 import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
-import type { Visita, Persona } from "@/types";
+import type { Visita, Persona, Inmueble } from "@/types";
 
 const schema = z.object({
   id: z.string().optional(),
   visitanteDni: z.string().min(8),
   visitanteNombre: z.string().min(3),
-  inmuebleId: z.string().optional(),
-  inmuebleLabel: z.string().optional(),
-  residenteId: z.string().min(1),
-  residenteNombre: z.string().optional(),
+  inmuebleId: z.string().min(1),
+  personaId: z.string().min(1),
   motivo: z.string().min(2),
   fechaHoraIngreso: z.string().min(1),
   fechaHoraSalida: z.string().optional(),
   estado: z.enum(["Activa", "Programada", "Completada", "Rechazada"]),
-  qrGenerado: z.string().optional(),
   vehiculoPlaca: z.string().optional(),
 });
 
@@ -33,6 +30,7 @@ export default function VisitasPage() {
   const updateMutation = useApiUpdate<Visita>("visitas");
   const deleteMutation = useApiDelete("visitas");
   const { data: residentes = [] } = useApiList<Persona>("personas");
+  const { data: inmuebles = [] } = useApiList<Inmueble>("inmuebles");
   const [search, setSearch] = useState("");
   const [estadoFilter, setEstadoFilter] = useState("Todas");
   const [form, setForm] = useState<{ mode: "create" | "edit"; item?: Visita } | null>(null);
@@ -47,29 +45,36 @@ export default function VisitasPage() {
 
   const filtered = useMemo(() => {
     let result = items;
-    if (search) { const q = search.toLowerCase(); result = result.filter(v => v.visitanteNombre.toLowerCase().includes(q) || v.residenteNombre.toLowerCase().includes(q)); }
+    if (search) { const q = search.toLowerCase(); result = result.filter(v => v.visitanteNombre.toLowerCase().includes(q) || (v.persona?.nombres || "").toLowerCase().includes(q)); }
     if (estadoFilter !== "Todas") result = result.filter(v => v.estado === estadoFilter);
     return result;
   }, [items, search, estadoFilter]);
 
   const handleSubmit = useCallback(async (data: Record<string, unknown>) => {
-    const id = (data.id as string) || crypto.randomUUID();
-    const res = residentes.find(r => r.id === data.residenteId);
-    const item: Visita = {
-      ...data as unknown as Visita, id,
-      residenteNombre: res ? `${res.nombres} ${res.apellidos}` : "",
-      inmuebleLabel: res?.vinculaciones[0]?.inmuebleLabel || "",
-      qrGenerado: `QR-${Date.now().toString(36).toUpperCase()}`,
+    const body: Record<string, unknown> = {
+      visitanteDni: data.visitanteDni,
+      visitanteNombre: data.visitanteNombre,
+      inmuebleId: data.inmuebleId,
+      personaId: data.personaId,
+      motivo: data.motivo,
+      fechaHoraIngreso: data.fechaHoraIngreso,
+      fechaHoraSalida: data.fechaHoraSalida || undefined,
+      estado: data.estado,
+      vehiculoPlaca: data.vehiculoPlaca || undefined,
     };
-    if (form?.mode === "edit") await updateMutation.mutateAsync(item);
-    else await createMutation.mutateAsync(item);
+    if (form?.mode === "edit") {
+      await updateMutation.mutateAsync({ ...body, id: data.id as string } as unknown as Visita);
+    } else {
+      await createMutation.mutateAsync(body as unknown as Visita);
+    }
     setForm(null);
-  }, [form, createMutation, updateMutation, residentes]);
+  }, [form, createMutation, updateMutation]);
 
   const fields = [
     { name: "visitanteDni", label: "DNI del visitante", type: "text" as const },
     { name: "visitanteNombre", label: "Nombre del visitante", type: "text" as const },
-    { name: "residenteId", label: "Residente anfitrión", type: "select" as const, options: residentes.filter(r => r.activo).map(r => ({ label: `${r.nombres} ${r.apellidos}`, value: r.id })) },
+    { name: "inmuebleId", label: "Inmueble destino", type: "select" as const, options: inmuebles.map(i => ({ label: i.numero, value: i.id })) },
+    { name: "personaId", label: "Residente anfitrión", type: "select" as const, options: residentes.filter(r => r.activo).map(r => ({ label: `${r.nombres} ${r.apellidos}`, value: r.id })) },
     { name: "motivo", label: "Motivo de visita", type: "text" as const },
     { name: "fechaHoraIngreso", label: "Fecha/Hora ingreso", type: "text" as const, placeholder: "2026-05-05 10:00" },
     { name: "vehiculoPlaca", label: "Placa vehículo (opcional)", type: "text" as const },
@@ -145,8 +150,8 @@ export default function VisitasPage() {
                 <tr key={v.id} className="border-b border-surface-50 hover:bg-surface-50 transition-colors group">
                   <td className="px-5 py-3 text-sm font-medium text-surface-800">{v.visitanteNombre}</td>
                   <td className="px-5 py-3 text-sm text-surface-600 font-mono">{v.visitanteDni}</td>
-                  <td className="px-5 py-3 text-sm text-surface-700">{v.residenteNombre}</td>
-                  <td className="px-5 py-3 text-xs text-surface-500">{v.inmuebleLabel}</td>
+                  <td className="px-5 py-3 text-sm text-surface-700">{v.persona?.nombres} {v.persona?.apellidos}</td>
+                  <td className="px-5 py-3 text-xs text-surface-500">{v.inmueble?.numero || "—"}</td>
                   <td className="px-5 py-3 text-sm text-surface-600">{v.fechaHoraIngreso}</td>
                   <td className="px-5 py-3 text-sm text-surface-400">{v.fechaHoraSalida || "—"}</td>
                   <td className="px-5 py-3">

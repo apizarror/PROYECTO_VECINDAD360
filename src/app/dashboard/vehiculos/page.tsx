@@ -19,11 +19,9 @@ const schema = z.object({
   color: z.string().min(1),
   ano: z.number().min(2000),
   tipo: z.enum(["Auto", "Moto", "Bicicleta"]),
-  residenteId: z.string().min(1),
-  residenteNombre: z.string().optional(),
+  personaId: z.string().min(1),
   inmuebleId: z.string().optional(),
-  inmuebleLabel: z.string().optional(),
-  espacioEstacionamiento: z.string().min(1),
+  espacioEstacionamiento: z.string().optional(),
   sticker: z.string().optional(),
   estado: z.enum(["Activo", "Inactivo"]),
 });
@@ -40,17 +38,26 @@ export default function VehiculosPage() {
   const [deleteTarget, setDeleteTarget] = useState<Vehiculo | null>(null);
 
   const handleSubmit = useCallback(async (data: Record<string, unknown>) => {
-    const id = (data.id as string) || crypto.randomUUID();
-    const res = residentes.find(r => r.id === data.residenteId);
-    const item: Vehiculo = {
-      ...data as unknown as Vehiculo, id,
-      residenteNombre: res ? `${res.nombres} ${res.apellidos}` : "",
-      inmuebleLabel: res?.vinculaciones[0]?.inmuebleLabel || "",
+    const body: Record<string, unknown> = {
+      placa: data.placa,
+      marca: data.marca,
+      modelo: data.modelo,
+      color: data.color,
+      ano: data.ano,
+      tipo: data.tipo,
+      personaId: data.personaId,
+      inmuebleId: data.inmuebleId || undefined,
+      espacioEstacionamiento: data.espacioEstacionamiento,
+      sticker: data.sticker || undefined,
+      estado: data.estado,
     };
-    if (form?.mode === "edit") await updateMutation.mutateAsync(item);
-    else await createMutation.mutateAsync(item);
+    if (form?.mode === "edit") {
+      await updateMutation.mutateAsync({ ...body, id: data.id as string } as unknown as Vehiculo);
+    } else {
+      await createMutation.mutateAsync(body as unknown as Vehiculo);
+    }
     setForm(null);
-  }, [form, createMutation, updateMutation, residentes]);
+  }, [form, createMutation, updateMutation]);
 
   const fields = [
     { name: "placa", label: "Placa", type: "text" as const, placeholder: "ABC-123" },
@@ -59,7 +66,7 @@ export default function VehiculosPage() {
     { name: "color", label: "Color", type: "text" as const },
     { name: "ano", label: "Año", type: "number" as const },
     { name: "tipo", label: "Tipo", type: "select" as const, options: ["Auto", "Moto", "Bicicleta"].map(t => ({ label: `${tipoIcono[t]} ${t}`, value: t })) },
-    { name: "residenteId", label: "Residente", type: "select" as const, options: residentes.filter(r => r.activo).map(r => ({ label: `${r.nombres} ${r.apellidos}`, value: r.id })) },
+    { name: "personaId", label: "Residente", type: "select" as const, options: residentes.filter(r => r.activo).map(r => ({ label: `${r.nombres} ${r.apellidos}`, value: r.id })) },
     { name: "espacioEstacionamiento", label: "Espacio de estacionamiento", type: "text" as const },
     { name: "sticker", label: "Sticker/QR", type: "text" as const },
     { name: "estado", label: "Estado", type: "select" as const, options: [{ label: "Activo", value: "Activo" }, { label: "Inactivo", value: "Inactivo" }] },
@@ -105,7 +112,7 @@ export default function VehiculosPage() {
               </div>
               <div className="space-y-1.5 mt-3 pt-3 border-t border-surface-100 text-xs">
                 <div className="flex items-center gap-1.5 text-surface-600"><Ticket className="h-3 w-3 text-surface-400" /><span className="font-mono font-bold">{v.placa}</span></div>
-                <div className="flex items-center gap-1.5 text-surface-500"><User className="h-3 w-3 text-surface-400" />{v.residenteNombre}</div>
+                <div className="flex items-center gap-1.5 text-surface-500"><User className="h-3 w-3 text-surface-400" />{v.persona?.nombres} {v.persona?.apellidos}</div>
                 <div className="flex items-center gap-1.5 text-surface-500"><MapPin className="h-3 w-3 text-surface-400" />{v.espacioEstacionamiento} · Sticker {v.sticker}</div>
               </div>
             </div>
