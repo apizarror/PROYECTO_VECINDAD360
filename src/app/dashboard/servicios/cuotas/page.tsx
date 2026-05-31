@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Landmark, Plus, Send } from "lucide-react";
+import { Landmark, Plus, Send, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
-import { useMockStore } from "@/hooks/use-mock-store";
-import { cuotasMantenimiento as initial } from "@/lib/mock-data/servicios";
+import { useApiList, useApiCreate, useApiUpdate } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import type { CuotaMantenimiento } from "@/types";
@@ -27,15 +26,17 @@ const cuotaSchema = z.object({
 });
 
 export default function CuotasPage() {
-  const store = useMockStore<CuotaMantenimiento>(initial);
+  const { data: items = [], isLoading } = useApiList<CuotaMantenimiento>("cuotas");
+  const createMutation = useApiCreate<CuotaMantenimiento>("cuotas");
+  const updateMutation = useApiUpdate<CuotaMantenimiento>("cuotas");
   const [form, setForm] = useState<{ mode: "create" | "edit"; item?: CuotaMantenimiento } | null>(null);
 
-  const handleEmitir = useCallback((cuota: CuotaMantenimiento) => {
-    store.update(cuota.id, { estado: "Emitida", inmueblesAplicados: 12, totalEmitido: cuota.montoBase * 12 });
-  }, [store]);
+  const handleEmitir = useCallback(async (cuota: CuotaMantenimiento) => {
+    await updateMutation.mutateAsync({ ...cuota, estado: "Emitida", inmueblesAplicados: 12, totalEmitido: cuota.montoBase * 12 });
+  }, [updateMutation]);
 
   const handleSubmit = useCallback(
-    (data: Record<string, unknown>) => {
+    async (data: Record<string, unknown>) => {
       const id = (data.id as string) || crypto.randomUUID();
       const item: CuotaMantenimiento = {
         id,
@@ -51,11 +52,11 @@ export default function CuotasPage() {
         totalEmitido: (data.totalEmitido as number) || 0,
         totalCobrado: (data.totalCobrado as number) || 0,
       };
-      if (form?.mode === "edit") store.update(id, item);
-      else store.create(item);
+      if (form?.mode === "edit") await updateMutation.mutateAsync(item);
+      else await createMutation.mutateAsync(item);
       setForm(null);
     },
-    [form, store]
+    [form, createMutation, updateMutation]
   );
 
   const fields = [
@@ -68,6 +69,17 @@ export default function CuotasPage() {
     { name: "moraDiaria", label: "Mora diaria (%)", type: "number" as const },
   ];
 
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={Landmark} title="Cuotas de Mantenimiento" subtitle="Cargando..." />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <HeaderPage icon={Landmark} title="Cuotas de Mantenimiento" subtitle="Cuotas mensuales ordinarias y extraordinarias">
@@ -78,7 +90,7 @@ export default function CuotasPage() {
       </HeaderPage>
 
       <div className="space-y-3">
-        {store.items
+        {[...items]
           .sort((a, b) => b.periodo.localeCompare(a.periodo))
           .map((cuota) => (
             <div key={cuota.id} className="bg-white rounded-2xl border border-surface-200 shadow-sm hover:shadow-md transition-all">

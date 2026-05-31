@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { AlertTriangle, Plus, Search, Edit, Trash2 } from "lucide-react";
+import { AlertTriangle, Plus, Search, Edit, Trash2, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
-import { useMockStore } from "@/hooks/use-mock-store";
-import { incidencias as initial } from "@/lib/mock-data/incidencias";
+import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import type { Incidencia } from "@/types";
@@ -27,43 +26,46 @@ const schema = z.object({
 });
 
 export default function IncidenciasPage() {
-  const store = useMockStore<Incidencia>(initial);
+  const { data: items = [], isLoading } = useApiList<Incidencia>("incidencias");
+  const createMutation = useApiCreate<Incidencia>("incidencias");
+  const updateMutation = useApiUpdate<Incidencia>("incidencias");
+  const deleteMutation = useApiDelete("incidencias");
   const [search, setSearch] = useState("");
   const [estadoFilter, setEstadoFilter] = useState("Todas");
   const [form, setForm] = useState<{ mode: "create" | "edit"; item?: Incidencia } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Incidencia | null>(null);
 
   const filtered = useMemo(() => {
-    let items = store.items;
+    let result = items;
     if (search) {
       const q = search.toLowerCase();
-      items = items.filter(
+      result = result.filter(
         (i) => i.titulo.toLowerCase().includes(q) || i.ubicacion.toLowerCase().includes(q)
       );
     }
-    if (estadoFilter !== "Todas") items = items.filter((i) => i.estado === estadoFilter);
-    return items;
-  }, [store.items, search, estadoFilter]);
+    if (estadoFilter !== "Todas") result = result.filter((i) => i.estado === estadoFilter);
+    return result;
+  }, [items, search, estadoFilter]);
 
   const kpis = useMemo(
     () => ({
-      total: store.items.length,
-      abiertas: store.items.filter((i) => i.estado === "Abierta").length,
-      enProceso: store.items.filter((i) => i.estado === "En proceso").length,
-      resueltas: store.items.filter((i) => i.estado === "Resuelta" || i.estado === "Cerrada").length,
+      total: items.length,
+      abiertas: items.filter((i) => i.estado === "Abierta").length,
+      enProceso: items.filter((i) => i.estado === "En proceso").length,
+      resueltas: items.filter((i) => i.estado === "Resuelta" || i.estado === "Cerrada").length,
     }),
-    [store.items]
+    [items]
   );
 
   const handleSubmit = useCallback(
-    (data: Record<string, unknown>) => {
+    async (data: Record<string, unknown>) => {
       const id = (data.id as string) || crypto.randomUUID();
       const item: Incidencia = { ...data, id } as unknown as Incidencia;
-      if (form?.mode === "edit") store.update(id, item);
-      else store.create(item);
+      if (form?.mode === "edit") await updateMutation.mutateAsync(item);
+      else await createMutation.mutateAsync(item);
       setForm(null);
     },
-    [form, store]
+    [form, createMutation, updateMutation]
   );
 
   const fields = [
@@ -97,6 +99,17 @@ export default function IncidenciasPage() {
     Alta: "bg-amber-50 text-amber-700",
     Crítica: "bg-red-50 text-red-700",
   };
+
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={AlertTriangle} title="Incidencias" subtitle="Cargando..." />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -241,8 +254,8 @@ export default function IncidenciasPage() {
       <ConfirmDialog
         open={deleteTarget !== null}
         onClose={() => setDeleteTarget(null)}
-        onConfirm={() => {
-          if (deleteTarget) store.remove(deleteTarget.id);
+        onConfirm={async () => {
+          if (deleteTarget) await deleteMutation.mutateAsync(deleteTarget.id);
           setDeleteTarget(null);
         }}
         title="Eliminar incidencia"

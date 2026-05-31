@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Building2, Plus, Trash2, Users, Clock, Shield, DollarSign } from "lucide-react";
+import { Building2, Plus, Trash2, Users, Clock, Shield, DollarSign, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
-import { useMockStore } from "@/hooks/use-mock-store";
-import { areasComunes as initial } from "@/lib/mock-data/areas-comunes";
+import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import type { AreaComun } from "@/types";
@@ -27,17 +26,20 @@ const schema = z.object({
 });
 
 export default function AreasPage() {
-  const store = useMockStore<AreaComun>(initial);
+  const { data: items = [], isLoading } = useApiList<AreaComun>("areas-comunes");
+  const createMutation = useApiCreate<AreaComun>("areas-comunes");
+  const updateMutation = useApiUpdate<AreaComun>("areas-comunes");
+  const deleteMutation = useApiDelete("areas-comunes");
   const [form, setForm] = useState<{ mode: "create" | "edit"; item?: AreaComun } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AreaComun | null>(null);
 
-  const handleSubmit = useCallback((data: Record<string, unknown>) => {
+  const handleSubmit = useCallback(async (data: Record<string, unknown>) => {
     const id = (data.id as string) || crypto.randomUUID();
     const item: AreaComun = { ...data as unknown as AreaComun, id };
-    if (form?.mode === "edit") store.update(id, item);
-    else store.create(item);
+    if (form?.mode === "edit") await updateMutation.mutateAsync(item);
+    else await createMutation.mutateAsync(item);
     setForm(null);
-  }, [form, store]);
+  }, [form, createMutation, updateMutation]);
 
   const fields = [
     { name: "nombre", label: "Nombre del área", type: "text" as const, placeholder: "Ej: Parrilla" },
@@ -49,6 +51,17 @@ export default function AreasPage() {
     { name: "estado", label: "Estado", type: "select" as const, options: [{ label: "Activa", value: "Activa" }, { label: "Inactiva", value: "Inactiva" }] },
   ];
 
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={Building2} title="Áreas Comunes" subtitle="Catálogo de espacios reservables" />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <HeaderPage icon={Building2} title="Áreas Comunes" subtitle="Catálogo de espacios reservables">
@@ -58,7 +71,7 @@ export default function AreasPage() {
       </HeaderPage>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {store.items.map(a => (
+        {items.map(a => (
           <div key={a.id} onClick={() => setForm({ mode: "edit", item: a })}
             className={cn("bg-white rounded-2xl border shadow-sm hover:shadow-md cursor-pointer group relative transition-all overflow-hidden",
               a.estado === "Activa" ? "border-surface-200" : "border-surface-200 opacity-60")}>
@@ -92,7 +105,7 @@ export default function AreasPage() {
       <FormDrawer open={form !== null} onClose={() => setForm(null)} onSubmit={handleSubmit} schema={schema}
         defaultValues={form?.item || undefined} title={form?.mode === "create" ? "Nueva Área" : "Editar Área"} fields={fields} />
       <ConfirmDialog open={deleteTarget !== null} onClose={() => setDeleteTarget(null)}
-        onConfirm={() => { if (deleteTarget) store.remove(deleteTarget.id); setDeleteTarget(null); }}
+        onConfirm={async () => { if (deleteTarget) await deleteMutation.mutateAsync(deleteTarget.id); setDeleteTarget(null); }}
         title="Eliminar área" message={`¿Eliminar "${deleteTarget?.nombre}"?`} />
     </>
   );

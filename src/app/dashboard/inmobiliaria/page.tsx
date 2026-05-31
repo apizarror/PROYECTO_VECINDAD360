@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Building2, Plus } from "lucide-react";
+import { Building2, Plus, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { EdificioCard } from "@/components/dashboard/edificio-card";
@@ -9,9 +9,8 @@ import { BloqueCard } from "@/components/dashboard/bloque-card";
 import { InmuebleCard } from "@/components/dashboard/inmueble-card";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
-import { useMockStore } from "@/hooks/use-mock-store";
+import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { edificioSchema, bloqueSchema, inmuebleSchema } from "@/lib/inmobiliaria-schemas";
-import { edificios as initialEdificios, bloques as initialBloques, inmuebles as initialInmuebles } from "@/lib/mock-data/inmobiliaria";
 import { cn } from "@/lib/utils";
 import type { Edificio, Bloque, Inmueble } from "@/types";
 
@@ -25,9 +24,25 @@ export default function InmobiliariaPage() {
   const [form, setForm] = useState<FormTarget>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string; tab: Tab } | null>(null);
 
-  const edificiosStore = useMockStore<Edificio>(initialEdificios);
-  const bloquesStore = useMockStore<Bloque>(initialBloques);
-  const inmueblesStore = useMockStore<Inmueble>(initialInmuebles);
+  // Edificios
+  const { data: edificios = [], isLoading: loadingEdificios } = useApiList<Edificio>("edificios");
+  const createEdificio = useApiCreate<Edificio>("edificios");
+  const updateEdificio = useApiUpdate<Edificio>("edificios");
+  const deleteEdificio = useApiDelete("edificios");
+
+  // Bloques
+  const { data: bloques = [], isLoading: loadingBloques } = useApiList<Bloque>("bloques");
+  const createBloque = useApiCreate<Bloque>("bloques");
+  const updateBloque = useApiUpdate<Bloque>("bloques");
+  const deleteBloque = useApiDelete("bloques");
+
+  // Inmuebles
+  const { data: inmuebles = [], isLoading: loadingInmuebles } = useApiList<Inmueble>("inmuebles");
+  const createInmueble = useApiCreate<Inmueble>("inmuebles");
+  const updateInmueble = useApiUpdate<Inmueble>("inmuebles");
+  const deleteInmueble = useApiDelete("inmuebles");
+
+  const isLoading = loadingEdificios || loadingBloques || loadingInmuebles;
 
   const openCreate = useCallback(() => {
     setForm({ mode: "create" });
@@ -38,43 +53,43 @@ export default function InmobiliariaPage() {
   }, []);
 
   const handleSubmit = useCallback(
-    (data: Record<string, unknown>) => {
+    async (data: Record<string, unknown>) => {
       const id = (data.id as string) || crypto.randomUUID();
 
       if (activeTab === "edificios") {
         const item = { ...data, id } as unknown as Edificio;
         if (form?.mode === "edit") {
-          edificiosStore.update(id, item);
+          await updateEdificio.mutateAsync(item);
         } else {
-          edificiosStore.create(item);
+          await createEdificio.mutateAsync(item);
         }
       } else if (activeTab === "bloques") {
         const item = { ...data, id } as unknown as Bloque;
         if (form?.mode === "edit") {
-          bloquesStore.update(id, item);
+          await updateBloque.mutateAsync(item);
         } else {
-          bloquesStore.create(item);
+          await createBloque.mutateAsync(item);
         }
       } else {
         const item = { ...data, id } as unknown as Inmueble;
         if (form?.mode === "edit") {
-          inmueblesStore.update(id, item);
+          await updateInmueble.mutateAsync(item);
         } else {
-          inmueblesStore.create(item);
+          await createInmueble.mutateAsync(item);
         }
       }
       setForm(null);
     },
-    [activeTab, form, edificiosStore, bloquesStore, inmueblesStore]
+    [activeTab, form, createEdificio, updateEdificio, createBloque, updateBloque, createInmueble, updateInmueble]
   );
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     if (!deleteTarget) return;
-    if (deleteTarget.tab === "edificios") edificiosStore.remove(deleteTarget.id);
-    else if (deleteTarget.tab === "bloques") bloquesStore.remove(deleteTarget.id);
-    else inmueblesStore.remove(deleteTarget.id);
+    if (deleteTarget.tab === "edificios") await deleteEdificio.mutateAsync(deleteTarget.id);
+    else if (deleteTarget.tab === "bloques") await deleteBloque.mutateAsync(deleteTarget.id);
+    else await deleteInmueble.mutateAsync(deleteTarget.id);
     setDeleteTarget(null);
-  }, [deleteTarget, edificiosStore, bloquesStore, inmueblesStore]);
+  }, [deleteTarget, deleteEdificio, deleteBloque, deleteInmueble]);
 
   const currentSchema =
     activeTab === "edificios" ? edificioSchema : activeTab === "bloques" ? bloqueSchema : inmuebleSchema;
@@ -97,7 +112,7 @@ export default function InmobiliariaPage() {
   const bloqueFields = [
     {
       name: "edificioId", label: "Edificio", type: "select" as const,
-      options: edificiosStore.items.map((e) => ({ label: e.nombre, value: e.id })),
+      options: edificios.map((e) => ({ label: e.nombre, value: e.id })),
     },
     { name: "nombre", label: "Nombre del bloque", type: "text" as const, placeholder: "Ej: Bloque A" },
     { name: "pisos", label: "Cantidad de pisos", type: "number" as const },
@@ -107,7 +122,7 @@ export default function InmobiliariaPage() {
   const inmuebleFields = [
     {
       name: "bloqueId", label: "Bloque", type: "select" as const,
-      options: bloquesStore.items.map((b) => ({
+      options: bloques.map((b) => ({
         label: `${b.edificioNombre} - ${b.nombre}`,
         value: b.id,
       })),
@@ -131,10 +146,21 @@ export default function InmobiliariaPage() {
     activeTab === "edificios" ? edificioFields : activeTab === "bloques" ? bloqueFields : inmuebleFields;
 
   const tabs: { id: Tab; label: string; count: number }[] = [
-    { id: "edificios", label: "Edificios", count: edificiosStore.items.length },
-    { id: "bloques", label: "Bloques", count: bloquesStore.items.length },
-    { id: "inmuebles", label: "Inmuebles", count: inmueblesStore.items.length },
+    { id: "edificios", label: "Edificios", count: edificios.length },
+    { id: "bloques", label: "Bloques", count: bloques.length },
+    { id: "inmuebles", label: "Inmuebles", count: inmuebles.length },
   ];
+
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={Building2} title="Inmobiliaria" subtitle="Gestiona edificios, bloques e inmuebles de tu condominio" />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -182,7 +208,7 @@ export default function InmobiliariaPage() {
       {/* Edificios */}
       {activeTab === "edificios" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {edificiosStore.items.map((edificio) => (
+          {edificios.map((edificio) => (
             <EdificioCard
               key={edificio.id}
               edificio={edificio}
@@ -196,7 +222,7 @@ export default function InmobiliariaPage() {
       {/* Bloques */}
       {activeTab === "bloques" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {bloquesStore.items.map((bloque) => (
+          {bloques.map((bloque) => (
             <BloqueCard
               key={bloque.id}
               bloque={bloque}
@@ -210,7 +236,7 @@ export default function InmobiliariaPage() {
       {/* Inmuebles */}
       {activeTab === "inmuebles" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {inmueblesStore.items.map((inmueble) => (
+          {inmuebles.map((inmueble) => (
             <InmuebleCard
               key={inmueble.id}
               inmueble={inmueble}

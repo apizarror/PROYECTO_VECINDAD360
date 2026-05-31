@@ -1,16 +1,15 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { AlertTriangle, Plus, Search, Trash2, Edit } from "lucide-react";
+import { AlertTriangle, Plus, Search, Trash2, Edit, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
-import { useMockStore } from "@/hooks/use-mock-store";
-import { multas as initialMultas, residentes } from "@/lib/mock-data/residentes";
+import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
-import type { Multa } from "@/types";
+import type { Multa, Persona } from "@/types";
 
 const multaSchema = z.object({
   id: z.string().optional(),
@@ -39,26 +38,30 @@ const motivoLabels: Record<string, string> = {
 const estados = ["Todas", "Pendiente", "Pagada", "Anulada", "Vencida"] as const;
 
 export default function MultasPage() {
-  const store = useMockStore<Multa>(initialMultas);
+  const { data: items = [], isLoading } = useApiList<Multa>("multas");
+  const createMutation = useApiCreate<Multa>("multas");
+  const updateMutation = useApiUpdate<Multa>("multas");
+  const deleteMutation = useApiDelete("multas");
+  const { data: residentes = [] } = useApiList<Persona>("personas");
   const [search, setSearch] = useState("");
   const [estadoFilter, setEstadoFilter] = useState<string>("Todas");
   const [form, setForm] = useState<{ mode: "create" | "edit"; item?: Multa } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Multa | null>(null);
 
   const filtered = useMemo(() => {
-    let items = store.items;
+    let result = items;
     if (search) {
       const q = search.toLowerCase();
-      items = items.filter((m) => m.residenteNombre.toLowerCase().includes(q) || m.inmuebleLabel.toLowerCase().includes(q));
+      result = result.filter((m) => m.residenteNombre.toLowerCase().includes(q) || m.inmuebleLabel.toLowerCase().includes(q));
     }
     if (estadoFilter !== "Todas") {
-      items = items.filter((m) => m.estado === estadoFilter);
+      result = result.filter((m) => m.estado === estadoFilter);
     }
-    return items;
-  }, [store.items, search, estadoFilter]);
+    return result;
+  }, [items, search, estadoFilter]);
 
   const handleSubmit = useCallback(
-    (data: Record<string, unknown>) => {
+    async (data: Record<string, unknown>) => {
       const id = (data.id as string) || crypto.randomUUID();
       const residente = residentes.find((r) => r.id === data.residenteId);
       const item: Multa = {
@@ -75,17 +78,17 @@ export default function MultasPage() {
         estado: data.estado as Multa["estado"],
         aplicadaPor: data.aplicadaPor as string,
       };
-      if (form?.mode === "edit") store.update(id, item);
-      else store.create(item);
+      if (form?.mode === "edit") await updateMutation.mutateAsync(item);
+      else await createMutation.mutateAsync(item);
       setForm(null);
     },
-    [form, store]
+    [form, createMutation, updateMutation, residentes]
   );
 
-  const handleDelete = useCallback(() => {
-    if (deleteTarget) store.remove(deleteTarget.id);
+  const handleDelete = useCallback(async () => {
+    if (deleteTarget) await deleteMutation.mutateAsync(deleteTarget.id);
     setDeleteTarget(null);
-  }, [deleteTarget, store]);
+  }, [deleteTarget, deleteMutation]);
 
   const fields = [
     { name: "residenteId", label: "Residente", type: "select" as const, options: residentes.filter(r => r.activo).map(r => ({ label: `${r.nombres} ${r.apellidos}`, value: r.id })) },
@@ -97,6 +100,17 @@ export default function MultasPage() {
     { name: "aplicadaPor", label: "Aplicada por", type: "text" as const, placeholder: "Administración" },
     { name: "estado", label: "Estado", type: "select" as const, options: ["Pendiente", "Pagada", "Anulada", "Vencida"].map(s => ({ label: s, value: s })) },
   ];
+
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={AlertTriangle} title="Multas" subtitle="Sanciones y penalidades a residentes" />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

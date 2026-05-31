@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { ListTodo, Plus, Search, Edit, Trash2 } from "lucide-react";
+import { ListTodo, Plus, Search, Edit, Trash2, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
-import { useMockStore } from "@/hooks/use-mock-store";
-import { tareasProgramadas as initial } from "@/lib/mock-data/incidencias";
+import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import type { TareaProgramada } from "@/types";
@@ -24,33 +23,36 @@ const schema = z.object({
 });
 
 export default function TareasPage() {
-  const store = useMockStore<TareaProgramada>(initial);
+  const { data: items = [], isLoading } = useApiList<TareaProgramada>("tareas");
+  const createMutation = useApiCreate<TareaProgramada>("tareas");
+  const updateMutation = useApiUpdate<TareaProgramada>("tareas");
+  const deleteMutation = useApiDelete("tareas");
   const [search, setSearch] = useState("");
   const [estadoFilter, setEstadoFilter] = useState("Todas");
   const [form, setForm] = useState<{ mode: "create" | "edit"; item?: TareaProgramada } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<TareaProgramada | null>(null);
 
   const filtered = useMemo(() => {
-    let items = store.items;
+    let result = items;
     if (search) {
       const q = search.toLowerCase();
-      items = items.filter(
+      result = result.filter(
         (t) => t.titulo.toLowerCase().includes(q) || t.asignadaA.toLowerCase().includes(q)
       );
     }
-    if (estadoFilter !== "Todas") items = items.filter((t) => t.estado === estadoFilter);
-    return items;
-  }, [store.items, search, estadoFilter]);
+    if (estadoFilter !== "Todas") result = result.filter((t) => t.estado === estadoFilter);
+    return result;
+  }, [items, search, estadoFilter]);
 
   const handleSubmit = useCallback(
-    (data: Record<string, unknown>) => {
+    async (data: Record<string, unknown>) => {
       const id = (data.id as string) || crypto.randomUUID();
       const item: TareaProgramada = { ...data, id } as unknown as TareaProgramada;
-      if (form?.mode === "edit") store.update(id, item);
-      else store.create(item);
+      if (form?.mode === "edit") await updateMutation.mutateAsync(item);
+      else await createMutation.mutateAsync(item);
       setForm(null);
     },
-    [form, store]
+    [form, createMutation, updateMutation]
   );
 
   const fields = [
@@ -75,12 +77,23 @@ export default function TareasPage() {
     },
   ];
 
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={ListTodo} title="Tareas Programadas" subtitle="Cargando..." />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <HeaderPage
         icon={ListTodo}
         title="Tareas Programadas"
-        subtitle={`${store.items.filter((t) => t.estado === "Pendiente").length} pendientes`}
+        subtitle={`${items.filter((t) => t.estado === "Pendiente").length} pendientes`}
       >
         <Button variant="accent" size="md" onClick={() => setForm({ mode: "create" })}>
           <Plus className="h-4 w-4 mr-1.5" />
@@ -197,8 +210,8 @@ export default function TareasPage() {
       <ConfirmDialog
         open={deleteTarget !== null}
         onClose={() => setDeleteTarget(null)}
-        onConfirm={() => {
-          if (deleteTarget) store.remove(deleteTarget.id);
+        onConfirm={async () => {
+          if (deleteTarget) await deleteMutation.mutateAsync(deleteTarget.id);
           setDeleteTarget(null);
         }}
         title="Eliminar tarea"

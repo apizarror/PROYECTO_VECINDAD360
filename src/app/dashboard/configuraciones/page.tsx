@@ -1,17 +1,12 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Settings, Plus, Edit, Trash2, Building2, Layers } from "lucide-react";
+import { Settings, Plus, Edit, Trash2, Building2, Layers, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
-import { useMockStore } from "@/hooks/use-mock-store";
-import {
-  gruposRubro as initialGrupos,
-  serviciosRubro as initialServicios,
-  configuracionCondominio as initialConfig,
-} from "@/lib/mock-data/configuraciones";
+import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import type { GrupoRubro, ServicioRubro, ConfiguracionCondominio } from "@/types";
@@ -51,12 +46,32 @@ const condominioSchema = z.object({
 export default function ConfiguracionesPage() {
   const [activeTab, setActiveTab] = useState<Tab>("rubros");
 
-  // Rubros stores
-  const gruposStore = useMockStore<GrupoRubro>(initialGrupos);
-  const serviciosStore = useMockStore<ServicioRubro>(initialServicios);
+  // Rubros
+  const { data: gruposItems = [], isLoading: loadingGrupos } = useApiList<GrupoRubro>("grupos-rubro");
+  const createGrupo = useApiCreate<GrupoRubro>("grupos-rubro");
+  const updateGrupo = useApiUpdate<GrupoRubro>("grupos-rubro");
+  const deleteGrupoMutation = useApiDelete("grupos-rubro");
 
-  // Condominio config (single record, mutable)
-  const [config, setConfig] = useState<ConfiguracionCondominio>(initialConfig);
+  const { data: serviciosItems = [], isLoading: loadingServicios } = useApiList<ServicioRubro>("servicios-rubro");
+  const createServicio = useApiCreate<ServicioRubro>("servicios-rubro");
+  const updateServicio = useApiUpdate<ServicioRubro>("servicios-rubro");
+  const deleteServicioMutation = useApiDelete("servicios-rubro");
+
+  // Condominio config (single record, mutable locally for now)
+  const [config, setConfig] = useState<ConfiguracionCondominio>({
+    razonSocial: "",
+    ruc: "",
+    direccion: "",
+    colorPrimario: "#2563EB",
+    zonaHoraria: "America/Lima",
+    moneda: "PEN",
+    moraDiaria: 0.05,
+    whatsappBusinessId: "",
+    pasarelaPago: "Ninguna",
+    smtpHost: "",
+  });
+
+  const isLoading = loadingGrupos || loadingServicios;
 
   // Rubros forms
   const [grupoForm, setGrupoForm] = useState<{ mode: "create" | "edit"; item?: GrupoRubro } | null>(null);
@@ -67,21 +82,21 @@ export default function ConfiguracionesPage() {
   const [editCondominio, setEditCondominio] = useState(false);
 
   const handleGrupoSubmit = useCallback(
-    (data: Record<string, unknown>) => {
+    async (data: Record<string, unknown>) => {
       const id = (data.id as string) || crypto.randomUUID();
       const item: GrupoRubro = { id, nombre: data.nombre as string, orden: data.orden as number };
-      if (grupoForm?.mode === "edit") gruposStore.update(id, item);
-      else gruposStore.create(item);
+      if (grupoForm?.mode === "edit") await updateGrupo.mutateAsync(item);
+      else await createGrupo.mutateAsync(item);
       setGrupoForm(null);
     },
-    [grupoForm, gruposStore]
+    [grupoForm, createGrupo, updateGrupo]
   );
 
   const handleServicioSubmit = useCallback(
-    (data: Record<string, unknown>) => {
+    async (data: Record<string, unknown>) => {
       const id = (data.id as string) || crypto.randomUUID();
       const grupoId = data.grupoId as string;
-      const grupo = gruposStore.items.find((g) => g.id === grupoId);
+      const grupo = gruposItems.find((g) => g.id === grupoId);
       const item: ServicioRubro = {
         id,
         grupoId,
@@ -92,19 +107,19 @@ export default function ConfiguracionesPage() {
         tarifaBase: data.tarifaBase as number,
         cuentaContable: data.cuentaContable as string,
       };
-      if (servicioForm?.mode === "edit") serviciosStore.update(id, item);
-      else serviciosStore.create(item);
+      if (servicioForm?.mode === "edit") await updateServicio.mutateAsync(item);
+      else await createServicio.mutateAsync(item);
       setServicioForm(null);
     },
-    [servicioForm, serviciosStore, gruposStore]
+    [servicioForm, createServicio, updateServicio, gruposItems]
   );
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     if (!deleteTarget) return;
-    if (deleteTarget.type === "grupo") gruposStore.remove(deleteTarget.id);
-    else serviciosStore.remove(deleteTarget.id);
+    if (deleteTarget.type === "grupo") await deleteGrupoMutation.mutateAsync(deleteTarget.id);
+    else await deleteServicioMutation.mutateAsync(deleteTarget.id);
     setDeleteTarget(null);
-  }, [deleteTarget, gruposStore, serviciosStore]);
+  }, [deleteTarget, deleteGrupoMutation, deleteServicioMutation]);
 
   const handleCondominioSubmit = useCallback(
     (data: Record<string, unknown>) => {
@@ -120,7 +135,7 @@ export default function ConfiguracionesPage() {
   ];
 
   const servicioFields = [
-    { name: "grupoId", label: "Grupo", type: "select" as const, options: gruposStore.items.map((g) => ({ label: g.nombre, value: g.id })) },
+    { name: "grupoId", label: "Grupo", type: "select" as const, options: gruposItems.map((g) => ({ label: g.nombre, value: g.id })) },
     { name: "nombre", label: "Nombre del servicio", type: "text" as const, placeholder: "Ej: Agua" },
     { name: "tipo", label: "Tipo", type: "select" as const, options: [{ label: "Ordinario", value: "Ordinario" }, { label: "Extraordinario", value: "Extraordinario" }] },
     { name: "unidad", label: "Unidad", type: "text" as const, placeholder: "m³, kWh, mes..." },
@@ -136,6 +151,17 @@ export default function ConfiguracionesPage() {
     { name: "moraDiaria", label: "Mora diaria (%)", type: "number" as const },
     { name: "pasarelaPago", label: "Pasarela de pago", type: "select" as const, options: ["Ninguna", "Niubiz", "Culqi", "Izipay"].map((p) => ({ label: p, value: p })) },
   ];
+
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={Settings} title="Configuraciones" subtitle="Rubros contables y datos del condominio" />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -174,10 +200,10 @@ export default function ConfiguracionesPage() {
 
           {/* Árbol de grupos y servicios */}
           <div className="space-y-3">
-            {gruposStore.items
+            {[...gruposItems]
               .sort((a, b) => a.orden - b.orden)
               .map((grupo) => {
-                const servicios = serviciosStore.items.filter((s) => s.grupoId === grupo.id);
+                const servicios = serviciosItems.filter((s) => s.grupoId === grupo.id);
                 return (
                   <div key={grupo.id} className="bg-white rounded-2xl border border-surface-200 shadow-sm overflow-hidden">
                     {/* Grupo header */}

@@ -1,17 +1,15 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { CalendarDays, Plus, Edit, Trash2, Search } from "lucide-react";
+import { CalendarDays, Plus, Edit, Trash2, Search, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
-import { useMockStore } from "@/hooks/use-mock-store";
-import { reservas as initial, areasComunes } from "@/lib/mock-data/areas-comunes";
-import { residentes } from "@/lib/mock-data/residentes";
+import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
-import type { Reserva } from "@/types";
+import type { Reserva, AreaComun, Persona } from "@/types";
 
 const schema = z.object({
   id: z.string().optional(),
@@ -30,20 +28,25 @@ const schema = z.object({
 });
 
 export default function ReservasPage() {
-  const store = useMockStore<Reserva>(initial);
+  const { data: items = [], isLoading } = useApiList<Reserva>("reservas");
+  const createMutation = useApiCreate<Reserva>("reservas");
+  const updateMutation = useApiUpdate<Reserva>("reservas");
+  const deleteMutation = useApiDelete("reservas");
+  const { data: areasComunes = [] } = useApiList<AreaComun>("areas-comunes");
+  const { data: residentes = [] } = useApiList<Persona>("personas");
   const [search, setSearch] = useState("");
   const [estadoFilter, setEstadoFilter] = useState("Todas");
   const [form, setForm] = useState<{ mode: "create" | "edit"; item?: Reserva } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Reserva | null>(null);
 
   const filtered = useMemo(() => {
-    let items = store.items;
-    if (search) { const q = search.toLowerCase(); items = items.filter(r => r.residenteNombre.toLowerCase().includes(q) || r.areaComunNombre.toLowerCase().includes(q)); }
-    if (estadoFilter !== "Todas") items = items.filter(r => r.estado === estadoFilter);
-    return items;
-  }, [store.items, search, estadoFilter]);
+    let result = items;
+    if (search) { const q = search.toLowerCase(); result = result.filter(r => r.residenteNombre.toLowerCase().includes(q) || r.areaComunNombre.toLowerCase().includes(q)); }
+    if (estadoFilter !== "Todas") result = result.filter(r => r.estado === estadoFilter);
+    return result;
+  }, [items, search, estadoFilter]);
 
-  const handleSubmit = useCallback((data: Record<string, unknown>) => {
+  const handleSubmit = useCallback(async (data: Record<string, unknown>) => {
     const id = (data.id as string) || crypto.randomUUID();
     const area = areasComunes.find(a => a.id === data.areaComunId);
     const residente = residentes.find(r => r.id === data.residenteId);
@@ -54,10 +57,10 @@ export default function ReservasPage() {
       residenteNombre: residente ? `${residente.nombres} ${residente.apellidos}` : "",
       inmuebleLabel: residente?.vinculaciones[0]?.inmuebleLabel || "",
     };
-    if (form?.mode === "edit") store.update(id, item);
-    else store.create(item);
+    if (form?.mode === "edit") await updateMutation.mutateAsync(item);
+    else await createMutation.mutateAsync(item);
     setForm(null);
-  }, [form, store]);
+  }, [form, createMutation, updateMutation, areasComunes, residentes]);
 
   const fields = [
     { name: "areaComunId", label: "Área común", type: "select" as const, options: areasComunes.filter(a => a.estado === "Activa").map(a => ({ label: a.nombre, value: a.id })) },
@@ -71,6 +74,17 @@ export default function ReservasPage() {
   ];
 
   const estados = ["Todas", "Solicitada", "Confirmada", "Pagada", "Cancelada", "Realizada"] as const;
+
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={CalendarDays} title="Reservas" subtitle="Gestión de reservas de áreas comunes" />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -136,7 +150,7 @@ export default function ReservasPage() {
       <FormDrawer open={form !== null} onClose={() => setForm(null)} onSubmit={handleSubmit} schema={schema}
         defaultValues={form?.item || undefined} title={form?.mode === "create" ? "Nueva Reserva" : "Editar Reserva"} fields={fields} />
       <ConfirmDialog open={deleteTarget !== null} onClose={() => setDeleteTarget(null)}
-        onConfirm={() => { if (deleteTarget) store.remove(deleteTarget.id); setDeleteTarget(null); }}
+        onConfirm={async () => { if (deleteTarget) await deleteMutation.mutateAsync(deleteTarget.id); setDeleteTarget(null); }}
         title="Eliminar reserva" message={`¿Eliminar reserva de "${deleteTarget?.residenteNombre}"?`} />
     </>
   );

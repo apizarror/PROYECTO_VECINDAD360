@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { BriefcaseBusiness, Plus, Search, Edit, Trash2 } from "lucide-react";
+import { BriefcaseBusiness, Plus, Search, Edit, Trash2, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
-import { useMockStore } from "@/hooks/use-mock-store";
-import { empleados as initial } from "@/lib/mock-data/empleados";
+import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import type { Empleado } from "@/types";
@@ -28,36 +27,39 @@ const schema = z.object({
 });
 
 export default function EmpleadosPage() {
-  const store = useMockStore<Empleado>(initial);
+  const { data: items = [], isLoading } = useApiList<Empleado>("empleados");
+  const createMutation = useApiCreate<Empleado>("empleados");
+  const updateMutation = useApiUpdate<Empleado>("empleados");
+  const deleteMutation = useApiDelete("empleados");
   const [search, setSearch] = useState("");
   const [cargoFilter, setCargoFilter] = useState("Todos");
   const [form, setForm] = useState<{ mode: "create" | "edit"; item?: Empleado } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Empleado | null>(null);
 
   const filtered = useMemo(() => {
-    let items = store.items;
+    let result = items;
     if (search) {
       const q = search.toLowerCase();
-      items = items.filter(
+      result = result.filter(
         (e) =>
           e.nombres.toLowerCase().includes(q) ||
           e.apellidos.toLowerCase().includes(q) ||
           e.dni.includes(q)
       );
     }
-    if (cargoFilter !== "Todos") items = items.filter((e) => e.cargo === cargoFilter);
-    return items;
-  }, [store.items, search, cargoFilter]);
+    if (cargoFilter !== "Todos") result = result.filter((e) => e.cargo === cargoFilter);
+    return result;
+  }, [items, search, cargoFilter]);
 
   const handleSubmit = useCallback(
-    (data: Record<string, unknown>) => {
+    async (data: Record<string, unknown>) => {
       const id = (data.id as string) || crypto.randomUUID();
       const item: Empleado = { ...data, id } as unknown as Empleado;
-      if (form?.mode === "edit") store.update(id, item);
-      else store.create(item);
+      if (form?.mode === "edit") await updateMutation.mutateAsync(item);
+      else await createMutation.mutateAsync(item);
       setForm(null);
     },
-    [form, store]
+    [form, createMutation, updateMutation]
   );
 
   const fields = [
@@ -98,6 +100,17 @@ export default function EmpleadosPage() {
   ];
 
   const cargos = ["Todos", "Conserje", "Vigilante", "Limpieza", "Mantenimiento", "Administrador"];
+
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={BriefcaseBusiness} title="Empleados" subtitle="Personal del condominio" />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -232,8 +245,8 @@ export default function EmpleadosPage() {
       <ConfirmDialog
         open={deleteTarget !== null}
         onClose={() => setDeleteTarget(null)}
-        onConfirm={() => {
-          if (deleteTarget) store.remove(deleteTarget.id);
+        onConfirm={async () => {
+          if (deleteTarget) await deleteMutation.mutateAsync(deleteTarget.id);
           setDeleteTarget(null);
         }}
         title="Eliminar empleado"

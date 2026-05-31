@@ -1,15 +1,17 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Wrench, Search } from "lucide-react";
+import { Wrench, Search, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
-import { cargosServicio } from "@/lib/mock-data/servicios";
+import { useApiList } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
+import type { CargoServicio } from "@/types";
 
 const periodos = ["Todos", "2026-05", "2026-04", "2026-03"];
 const servicios = ["Todos", "Agua", "Luz Áreas Comunes"];
 
 export default function CargosServicioPage() {
+  const { data: cargosServicio = [], isLoading } = useApiList<CargoServicio>("cargos-servicio");
   const [search, setSearch] = useState("");
   const [periodoFilter, setPeriodoFilter] = useState("Todos");
   const [servicioFilter, setServicioFilter] = useState("Todos");
@@ -23,9 +25,20 @@ export default function CargosServicioPage() {
     if (periodoFilter !== "Todos") items = items.filter((c) => c.periodo === periodoFilter);
     if (servicioFilter !== "Todos") items = items.filter((c) => c.servicioNombre === servicioFilter);
     return items;
-  }, [search, periodoFilter, servicioFilter]);
+  }, [cargosServicio, search, periodoFilter, servicioFilter]);
 
   const total = useMemo(() => filtered.reduce((s, c) => s + c.monto, 0), [filtered]);
+
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={Wrench} title="Cargos por Servicio" subtitle="Cargando..." />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

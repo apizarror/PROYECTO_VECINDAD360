@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { FolderOpen, Search } from "lucide-react";
+import { FolderOpen, Search, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
-import { archivos } from "@/lib/mock-data/archivos";
+import { useApiList } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
+import type { Archivo } from "@/types";
 
 export default function ArchivosPage() {
+  const { data: archivos = [], isLoading } = useApiList<Archivo>("archivos");
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("Todas");
 
@@ -18,9 +20,20 @@ export default function ArchivosPage() {
     }
     if (catFilter !== "Todas") items = items.filter((a) => a.categoria === catFilter);
     return items;
-  }, [search, catFilter]);
+  }, [archivos, search, catFilter]);
 
   const categorias = ["Todas", "Actas", "Reglamentos", "Contratos", "Estados financieros", "Otros"];
+
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={FolderOpen} title="Archivos Compartidos" subtitle="Cargando..." />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

@@ -1,17 +1,15 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { PersonStanding, Plus, Search, Edit, Trash2, Users, Clock, CheckCircle, CalendarCheck } from "lucide-react";
+import { PersonStanding, Plus, Search, Edit, Trash2, Users, Clock, CheckCircle, CalendarCheck, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
-import { useMockStore } from "@/hooks/use-mock-store";
-import { visitas as initial } from "@/lib/mock-data/visitas";
-import { residentes } from "@/lib/mock-data/residentes";
+import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
-import type { Visita } from "@/types";
+import type { Visita, Persona } from "@/types";
 
 const schema = z.object({
   id: z.string().optional(),
@@ -30,27 +28,31 @@ const schema = z.object({
 });
 
 export default function VisitasPage() {
-  const store = useMockStore<Visita>(initial);
+  const { data: items = [], isLoading } = useApiList<Visita>("visitas");
+  const createMutation = useApiCreate<Visita>("visitas");
+  const updateMutation = useApiUpdate<Visita>("visitas");
+  const deleteMutation = useApiDelete("visitas");
+  const { data: residentes = [] } = useApiList<Persona>("personas");
   const [search, setSearch] = useState("");
   const [estadoFilter, setEstadoFilter] = useState("Todas");
   const [form, setForm] = useState<{ mode: "create" | "edit"; item?: Visita } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Visita | null>(null);
 
   const kpis = useMemo(() => ({
-    total: store.items.length,
-    activas: store.items.filter(v => v.estado === "Activa").length,
-    programadas: store.items.filter(v => v.estado === "Programada").length,
-    completadas: store.items.filter(v => v.estado === "Completada").length,
-  }), [store.items]);
+    total: items.length,
+    activas: items.filter(v => v.estado === "Activa").length,
+    programadas: items.filter(v => v.estado === "Programada").length,
+    completadas: items.filter(v => v.estado === "Completada").length,
+  }), [items]);
 
   const filtered = useMemo(() => {
-    let items = store.items;
-    if (search) { const q = search.toLowerCase(); items = items.filter(v => v.visitanteNombre.toLowerCase().includes(q) || v.residenteNombre.toLowerCase().includes(q)); }
-    if (estadoFilter !== "Todas") items = items.filter(v => v.estado === estadoFilter);
-    return items;
-  }, [store.items, search, estadoFilter]);
+    let result = items;
+    if (search) { const q = search.toLowerCase(); result = result.filter(v => v.visitanteNombre.toLowerCase().includes(q) || v.residenteNombre.toLowerCase().includes(q)); }
+    if (estadoFilter !== "Todas") result = result.filter(v => v.estado === estadoFilter);
+    return result;
+  }, [items, search, estadoFilter]);
 
-  const handleSubmit = useCallback((data: Record<string, unknown>) => {
+  const handleSubmit = useCallback(async (data: Record<string, unknown>) => {
     const id = (data.id as string) || crypto.randomUUID();
     const res = residentes.find(r => r.id === data.residenteId);
     const item: Visita = {
@@ -59,10 +61,10 @@ export default function VisitasPage() {
       inmuebleLabel: res?.vinculaciones[0]?.inmuebleLabel || "",
       qrGenerado: `QR-${Date.now().toString(36).toUpperCase()}`,
     };
-    if (form?.mode === "edit") store.update(id, item);
-    else store.create(item);
+    if (form?.mode === "edit") await updateMutation.mutateAsync(item);
+    else await createMutation.mutateAsync(item);
     setForm(null);
-  }, [form, store]);
+  }, [form, createMutation, updateMutation, residentes]);
 
   const fields = [
     { name: "visitanteDni", label: "DNI del visitante", type: "text" as const },
@@ -82,6 +84,17 @@ export default function VisitasPage() {
     { label: "Programadas", value: kpis.programadas, icon: CalendarCheck, color: "text-amber-600 bg-amber-50" },
     { label: "Completadas", value: kpis.completadas, icon: CheckCircle, color: "text-surface-600 bg-surface-100" },
   ];
+
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={PersonStanding} title="Visitas" subtitle="Cargando..." />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -160,7 +173,7 @@ export default function VisitasPage() {
       <FormDrawer open={form !== null} onClose={() => setForm(null)} onSubmit={handleSubmit} schema={schema}
         defaultValues={form?.item || undefined} title={form?.mode === "create" ? "Registrar Visita" : "Editar Visita"} fields={fields} />
       <ConfirmDialog open={deleteTarget !== null} onClose={() => setDeleteTarget(null)}
-        onConfirm={() => { if (deleteTarget) store.remove(deleteTarget.id); setDeleteTarget(null); }}
+        onConfirm={async () => { if (deleteTarget) await deleteMutation.mutateAsync(deleteTarget.id); setDeleteTarget(null); }}
         title="Eliminar visita" message={`¿Eliminar visita de "${deleteTarget?.visitanteNombre}"?`} />
     </>
   );

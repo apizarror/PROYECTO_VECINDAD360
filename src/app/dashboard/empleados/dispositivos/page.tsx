@@ -1,16 +1,15 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Radio, Plus, Trash2 } from "lucide-react";
+import { Radio, Plus, Trash2, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
-import { useMockStore } from "@/hooks/use-mock-store";
-import { dispositivos as initial, empleados } from "@/lib/mock-data/empleados";
+import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
-import type { Dispositivo } from "@/types";
+import type { Dispositivo, Empleado } from "@/types";
 
 const schema = z.object({
   id: z.string().optional(),
@@ -25,12 +24,16 @@ const schema = z.object({
 });
 
 export default function DispositivosPage() {
-  const store = useMockStore<Dispositivo>(initial);
+  const { data: items = [], isLoading } = useApiList<Dispositivo>("dispositivos");
+  const createMutation = useApiCreate<Dispositivo>("dispositivos");
+  const updateMutation = useApiUpdate<Dispositivo>("dispositivos");
+  const deleteMutation = useApiDelete("dispositivos");
+  const { data: empleados = [] } = useApiList<Empleado>("empleados");
   const [form, setForm] = useState<{ mode: "create" | "edit"; item?: Dispositivo } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Dispositivo | null>(null);
 
   const handleSubmit = useCallback(
-    (data: Record<string, unknown>) => {
+    async (data: Record<string, unknown>) => {
       const id = (data.id as string) || crypto.randomUUID();
       const emp = empleados.find((e) => e.id === data.empleadoAsignadoId);
       const item: Dispositivo = {
@@ -38,11 +41,11 @@ export default function DispositivosPage() {
         id,
         empleadoAsignadoNombre: emp ? `${emp.nombres} ${emp.apellidos}` : "",
       } as unknown as Dispositivo;
-      if (form?.mode === "edit") store.update(id, item);
-      else store.create(item);
+      if (form?.mode === "edit") await updateMutation.mutateAsync(item);
+      else await createMutation.mutateAsync(item);
       setForm(null);
     },
-    [form, store]
+    [form, createMutation, updateMutation, empleados]
   );
 
   const fields = [
@@ -70,12 +73,23 @@ export default function DispositivosPage() {
     },
   ];
 
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={Radio} title="Dispositivos" subtitle="Cargando..." />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <HeaderPage
         icon={Radio}
         title="Dispositivos"
-        subtitle={`${store.items.length} dispositivos`}
+        subtitle={`${items.length} dispositivos`}
       >
         <Button variant="accent" size="md" onClick={() => setForm({ mode: "create" })}>
           <Plus className="h-4 w-4 mr-1.5" />
@@ -84,7 +98,7 @@ export default function DispositivosPage() {
       </HeaderPage>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {store.items.map((d) => (
+        {items.map((d) => (
           <div
             key={d.id}
             onClick={() => setForm({ mode: "edit", item: d })}
@@ -143,8 +157,8 @@ export default function DispositivosPage() {
       <ConfirmDialog
         open={deleteTarget !== null}
         onClose={() => setDeleteTarget(null)}
-        onConfirm={() => {
-          if (deleteTarget) store.remove(deleteTarget.id);
+        onConfirm={async () => {
+          if (deleteTarget) await deleteMutation.mutateAsync(deleteTarget.id);
           setDeleteTarget(null);
         }}
         title="Eliminar dispositivo"

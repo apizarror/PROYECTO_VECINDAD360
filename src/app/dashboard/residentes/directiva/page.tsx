@@ -1,16 +1,15 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { UserRoundCog, Plus, Trash2 } from "lucide-react";
+import { UserRoundCog, Plus, Trash2, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
-import { useMockStore } from "@/hooks/use-mock-store";
-import { directiva as initial, residentes } from "@/lib/mock-data/residentes";
+import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
-import type { MiembroDirectiva } from "@/types";
+import type { MiembroDirectiva, Persona } from "@/types";
 
 const directivaSchema = z.object({
   id: z.string().optional(),
@@ -31,14 +30,18 @@ const cargoIcons: Record<string, string> = {
 };
 
 export default function DirectivaPage() {
-  const store = useMockStore<MiembroDirectiva>(initial);
+  const { data: items = [], isLoading } = useApiList<MiembroDirectiva>("directiva");
+  const createMutation = useApiCreate<MiembroDirectiva>("directiva");
+  const updateMutation = useApiUpdate<MiembroDirectiva>("directiva");
+  const deleteMutation = useApiDelete("directiva");
+  const { data: residentes = [] } = useApiList<Persona>("personas");
   const [form, setForm] = useState<{ mode: "create" | "edit"; item?: MiembroDirectiva } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<MiembroDirectiva | null>(null);
 
   const openEdit = (item: MiembroDirectiva) => setForm({ mode: "edit", item });
 
   const handleSubmit = useCallback(
-    (data: Record<string, unknown>) => {
+    async (data: Record<string, unknown>) => {
       const id = (data.id as string) || crypto.randomUUID();
       const residente = residentes.find((r) => r.id === data.residenteId);
       const item: MiembroDirectiva = {
@@ -50,17 +53,17 @@ export default function DirectivaPage() {
         fechaFin: data.fechaFin as string,
         estado: data.estado as "Activo" | "Histórico",
       };
-      if (form?.mode === "edit") store.update(id, item);
-      else store.create(item);
+      if (form?.mode === "edit") await updateMutation.mutateAsync(item);
+      else await createMutation.mutateAsync(item);
       setForm(null);
     },
-    [form, store]
+    [form, createMutation, updateMutation, residentes]
   );
 
-  const handleDelete = useCallback(() => {
-    if (deleteTarget) store.remove(deleteTarget.id);
+  const handleDelete = useCallback(async () => {
+    if (deleteTarget) await deleteMutation.mutateAsync(deleteTarget.id);
     setDeleteTarget(null);
-  }, [deleteTarget, store]);
+  }, [deleteTarget, deleteMutation]);
 
   const fields = [
     { name: "residenteId", label: "Residente", type: "select" as const, options: residentes.filter(r => r.activo).map(r => ({ label: `${r.nombres} ${r.apellidos}`, value: r.id })) },
@@ -69,6 +72,17 @@ export default function DirectivaPage() {
     { name: "fechaFin", label: "Fecha fin", type: "text" as const, placeholder: "2027-12-31" },
     { name: "estado", label: "Estado", type: "select" as const, options: [{ label: "Activo", value: "Activo" }, { label: "Histórico", value: "Histórico" }] },
   ];
+
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={UserRoundCog} title="Directiva" subtitle="Junta directiva del condominio" />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -80,7 +94,7 @@ export default function DirectivaPage() {
       </HeaderPage>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {store.items.map((m) => (
+        {items.map((m) => (
           <div
             key={m.id}
             onClick={() => openEdit(m)}

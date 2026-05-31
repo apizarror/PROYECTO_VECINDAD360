@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
-import { Clock } from "lucide-react";
+import { Clock, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
-import { horarios } from "@/lib/mock-data/empleados";
+import { useApiList } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
+import type { Horario } from "@/types";
 
 const dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
@@ -15,11 +16,13 @@ const colores: Record<string, string> = {
   Rotativo: "bg-green-100 text-green-800 border-green-200",
 };
 
-const empleadosUnicos = [...new Set(horarios.map((h) => h.empleadoNombre))];
-
 export default function HorariosPage() {
+  const { data: horarios = [], isLoading } = useApiList<Horario>("horarios");
+
+  const empleadosUnicos = useMemo(() => [...new Set(horarios.map((h) => h.empleadoNombre))], [horarios]);
+
   const grid = useMemo(() => {
-    const map: Record<string, Record<string, typeof horarios>> = {};
+    const map: Record<string, Record<string, Horario[]>> = {};
     empleadosUnicos.forEach((e) => {
       map[e] = {};
       dias.forEach((d) => {
@@ -30,7 +33,18 @@ export default function HorariosPage() {
       if (map[h.empleadoNombre]) map[h.empleadoNombre][h.diaSemana].push(h);
     });
     return map;
-  }, []);
+  }, [horarios, empleadosUnicos]);
+
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={Clock} title="Horarios" subtitle="Turnos y programación semanal" />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

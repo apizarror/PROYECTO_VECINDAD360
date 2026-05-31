@@ -1,13 +1,12 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { WalletCards, Plus, Trash2 } from "lucide-react";
+import { useCallback, useState, useMemo } from "react";
+import { WalletCards, Plus, Trash2, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
-import { useMockStore } from "@/hooks/use-mock-store";
-import { cuentasBancarias as initial } from "@/lib/mock-data/financiero";
+import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import type { CuentaBancaria } from "@/types";
@@ -26,17 +25,20 @@ const cuentaSchema = z.object({
 });
 
 export default function CuentasPage() {
-  const store = useMockStore<CuentaBancaria>(initial);
+  const { data: items = [], isLoading } = useApiList<CuentaBancaria>("cuentas-bancarias");
+  const createMutation = useApiCreate<CuentaBancaria>("cuentas-bancarias");
+  const updateMutation = useApiUpdate<CuentaBancaria>("cuentas-bancarias");
+  const deleteMutation = useApiDelete("cuentas-bancarias");
   const [form, setForm] = useState<{ mode: "create" | "edit"; item?: CuentaBancaria } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CuentaBancaria | null>(null);
 
-  const handleSubmit = useCallback((data: Record<string, unknown>) => {
+  const handleSubmit = useCallback(async (data: Record<string, unknown>) => {
     const id = (data.id as string) || crypto.randomUUID();
     const item = { ...data, id } as unknown as CuentaBancaria;
-    if (form?.mode === "edit") store.update(id, item);
-    else store.create(item);
+    if (form?.mode === "edit") await updateMutation.mutateAsync(item);
+    else await createMutation.mutateAsync(item);
     setForm(null);
-  }, [form, store]);
+  }, [form, createMutation, updateMutation]);
 
   const fields = [
     { name: "banco", label: "Banco", type: "text" as const, placeholder: "BCP" },
@@ -50,12 +52,23 @@ export default function CuentasPage() {
     { name: "estado", label: "Estado", type: "select" as const, options: [{ label: "Activa", value: "Activa" }, { label: "Inactiva", value: "Inactiva" }] },
   ];
 
-  const activas = store.items.filter(c => c.estado === "Activa");
+  const activas = items.filter(c => c.estado === "Activa");
   const totalPEN = activas.filter(c => c.moneda === "PEN").reduce((s, c) => s + c.saldoActual, 0);
   const totalUSD = activas.filter(c => c.moneda === "USD").reduce((s, c) => s + c.saldoActual, 0);
   const subtitulo = totalUSD > 0
     ? `Total disponible: S/ ${totalPEN.toLocaleString()} · $ ${totalUSD.toLocaleString()}`
     : `Total disponible: S/ ${totalPEN.toLocaleString()}`;
+
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={WalletCards} title="Cuentas Bancarias" subtitle="Cargando..." />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -65,7 +78,7 @@ export default function CuentasPage() {
         </Button>
       </HeaderPage>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {store.items.map(c => (
+        {items.map(c => (
           <div key={c.id} onClick={() => setForm({ mode: "edit", item: c })}
             className="bg-white rounded-2xl border border-surface-200 shadow-sm hover:shadow-md cursor-pointer group relative transition-all">
             <button onClick={e => { e.stopPropagation(); setDeleteTarget(c); }}
@@ -92,7 +105,7 @@ export default function CuentasPage() {
       <FormDrawer open={form !== null} onClose={() => setForm(null)} onSubmit={handleSubmit} schema={cuentaSchema}
         defaultValues={form?.item || undefined} title={form?.mode === "create" ? "Nueva Cuenta" : "Editar Cuenta"} fields={fields} />
       <ConfirmDialog open={deleteTarget !== null} onClose={() => setDeleteTarget(null)}
-        onConfirm={() => { if (deleteTarget) store.remove(deleteTarget.id); setDeleteTarget(null); }}
+        onConfirm={async () => { if (deleteTarget) await deleteMutation.mutateAsync(deleteTarget.id); setDeleteTarget(null); }}
         title="Eliminar cuenta" message={`¿Eliminar cuenta ${deleteTarget?.banco}?`} />
     </>
   );

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { ReceiptText, Search, ChevronDown, ChevronRight } from "lucide-react";
+import { ReceiptText, Search, ChevronDown, ChevronRight, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
-import { cargosTotales } from "@/lib/mock-data/servicios";
+import { useApiList } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import type { CargoTotalResumen } from "@/types";
 
@@ -24,7 +24,7 @@ function CargoRow({ cargo }: { cargo: CargoTotalResumen["cargos"][number] }) {
       <td className="px-4 py-2.5 text-surface-600 text-right tabular-nums">S/ {cargo.monto.toLocaleString()}</td>
       <td className="px-4 py-2.5 text-surface-400">{cargo.fechaEmision}</td>
       <td className="px-4 py-2.5">
-        <span className={cn("text-[11px] font-bold px-2 py-0.5 rounded-full", 
+        <span className={cn("text-[11px] font-bold px-2 py-0.5 rounded-full",
           cargo.estado === "Pagado" ? "bg-green-50 text-green-700" :
           cargo.estado === "Vencido" ? "bg-red-50 text-red-700" :
           "bg-amber-50 text-amber-700"
@@ -37,6 +37,7 @@ function CargoRow({ cargo }: { cargo: CargoTotalResumen["cargos"][number] }) {
 }
 
 export default function CargosTotalesPage() {
+  const { data: cargosTotales = [], isLoading } = useApiList<CargoTotalResumen>("cargos-totales");
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -44,9 +45,20 @@ export default function CargosTotalesPage() {
     if (!search) return cargosTotales;
     const q = search.toLowerCase();
     return cargosTotales.filter((c) => c.inmuebleLabel.toLowerCase().includes(q) || c.residenteNombre.toLowerCase().includes(q));
-  }, [search]);
+  }, [cargosTotales, search]);
 
   const toggleExpand = (id: string) => setExpandedId(expandedId === id ? null : id);
+
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={ReceiptText} title="Cargos Totales" subtitle="Cargando..." />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

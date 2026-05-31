@@ -1,14 +1,28 @@
 "use client";
 
 import { useMemo } from "react";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
-import { presupuestos } from "@/lib/mock-data/financiero";
+import { useApiList } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
+import type { Presupuesto } from "@/types";
 
 export default function PresupuestosPage() {
-  const totalPresupuestado = useMemo(() => presupuestos.reduce((s, p) => s + p.montoPresupuestado, 0), []);
-  const totalEjecutado = useMemo(() => presupuestos.reduce((s, p) => s + p.montoEjecutado, 0), []);
+  const { data: presupuestos = [], isLoading } = useApiList<Presupuesto>("presupuestos");
+
+  const totalPresupuestado = useMemo(() => presupuestos.reduce((s, p) => s + p.montoPresupuestado, 0), [presupuestos]);
+  const totalEjecutado = useMemo(() => presupuestos.reduce((s, p) => s + p.montoEjecutado, 0), [presupuestos]);
+
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={BarChart3} title="Presupuestos" subtitle="Cargando..." />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

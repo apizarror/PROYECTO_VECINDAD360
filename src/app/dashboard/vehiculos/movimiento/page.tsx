@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { ArrowDownToLine, ArrowUpFromLine, Search, Car } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, Search, Car, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
-import { movimientosVehiculares } from "@/lib/mock-data/visitas";
+import { useApiList } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
+import type { MovimientoVehicular } from "@/types";
 
 export default function MovimientoVehicularPage() {
+  const { data: movimientosVehiculares = [], isLoading } = useApiList<MovimientoVehicular>("movimientos");
   const [search, setSearch] = useState("");
   const [tipoFilter, setTipoFilter] = useState("Todos");
 
@@ -15,7 +17,18 @@ export default function MovimientoVehicularPage() {
     if (search) { const q = search.toLowerCase(); items = items.filter(m => m.placa.toLowerCase().includes(q) || m.visitanteNombre?.toLowerCase().includes(q)); }
     if (tipoFilter !== "Todos") items = items.filter(m => m.tipoMovimiento === tipoFilter);
     return items.sort((a, b) => b.fechaHora.localeCompare(a.fechaHora));
-  }, [search, tipoFilter]);
+  }, [movimientosVehiculares, search, tipoFilter]);
+
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={Car} title="Movimiento Vehicular" subtitle="Cargando..." />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

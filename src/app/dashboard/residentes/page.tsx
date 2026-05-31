@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { Users, Plus, Search, Trash2, Edit, Download, Upload, X } from "lucide-react";
+import { Users, Plus, Search, Trash2, Edit, Download, Upload, X, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
-import { useMockStore } from "@/hooks/use-mock-store";
-import { residentes as initialResidentes } from "@/lib/mock-data/residentes";
+import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import type { Persona } from "@/types";
@@ -37,26 +36,29 @@ const fields = [
 ];
 
 export default function ResidentesPage() {
-  const store = useMockStore<Persona>(initialResidentes);
+  const { data: items = [], isLoading } = useApiList<Persona>("personas");
+  const createMutation = useApiCreate<Persona>("personas");
+  const updateMutation = useApiUpdate<Persona>("personas");
+  const deleteMutation = useApiDelete("personas");
   const [search, setSearch] = useState("");
   const [form, setForm] = useState<{ mode: "create" | "edit"; item?: Persona } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Persona | null>(null);
   const [showOptions, setShowOptions] = useState(false);
 
   const filtered = useMemo(() => {
-    if (!search) return store.items;
+    if (!search) return items;
     const q = search.toLowerCase();
-    return store.items.filter(
+    return items.filter(
       (r) =>
         r.documento.includes(q) ||
         r.nombres.toLowerCase().includes(q) ||
         r.apellidos.toLowerCase().includes(q) ||
         r.razonSocial?.toLowerCase().includes(q)
     );
-  }, [store.items, search]);
+  }, [items, search]);
 
   const handleSubmit = useCallback(
-    (data: Record<string, unknown>) => {
+    async (data: Record<string, unknown>) => {
       const id = (data.id as string) || crypto.randomUUID();
       const item: Persona = {
         id,
@@ -76,17 +78,20 @@ export default function ResidentesPage() {
         activo: data.activo !== false,
       };
 
-      if (form?.mode === "edit") store.update(id, item);
-      else store.create(item);
+      if (form?.mode === "edit") {
+        await updateMutation.mutateAsync(item);
+      } else {
+        await createMutation.mutateAsync(item);
+      }
       setForm(null);
     },
-    [form, store]
+    [form, createMutation, updateMutation]
   );
 
-  const handleDelete = useCallback(() => {
-    if (deleteTarget) store.remove(deleteTarget.id);
+  const handleDelete = useCallback(async () => {
+    if (deleteTarget) await deleteMutation.mutateAsync(deleteTarget.id);
     setDeleteTarget(null);
-  }, [deleteTarget, store]);
+  }, [deleteTarget, deleteMutation]);
 
   const openEdit = (item: Persona) => {
     setForm({
@@ -99,6 +104,17 @@ export default function ResidentesPage() {
       } as Persona & { email?: string; telefono?: string },
     });
   };
+
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={Users} title="Lista de Residentes" subtitle="Directorio de personas del condominio" />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

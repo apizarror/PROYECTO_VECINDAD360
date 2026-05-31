@@ -1,17 +1,15 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Car, Plus, Trash2, User, MapPin, Ticket } from "lucide-react";
+import { Car, Plus, Trash2, User, MapPin, Ticket, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
-import { useMockStore } from "@/hooks/use-mock-store";
-import { vehiculos as initial } from "@/lib/mock-data/visitas";
-import { residentes } from "@/lib/mock-data/residentes";
+import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
-import type { Vehiculo } from "@/types";
+import type { Vehiculo, Persona } from "@/types";
 
 const schema = z.object({
   id: z.string().optional(),
@@ -33,11 +31,15 @@ const schema = z.object({
 const tipoIcono: Record<string, string> = { Auto: "🚗", Moto: "🏍️", Bicicleta: "🚲" };
 
 export default function VehiculosPage() {
-  const store = useMockStore<Vehiculo>(initial);
+  const { data: items = [], isLoading } = useApiList<Vehiculo>("vehiculos");
+  const createMutation = useApiCreate<Vehiculo>("vehiculos");
+  const updateMutation = useApiUpdate<Vehiculo>("vehiculos");
+  const deleteMutation = useApiDelete("vehiculos");
+  const { data: residentes = [] } = useApiList<Persona>("personas");
   const [form, setForm] = useState<{ mode: "create" | "edit"; item?: Vehiculo } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Vehiculo | null>(null);
 
-  const handleSubmit = useCallback((data: Record<string, unknown>) => {
+  const handleSubmit = useCallback(async (data: Record<string, unknown>) => {
     const id = (data.id as string) || crypto.randomUUID();
     const res = residentes.find(r => r.id === data.residenteId);
     const item: Vehiculo = {
@@ -45,10 +47,10 @@ export default function VehiculosPage() {
       residenteNombre: res ? `${res.nombres} ${res.apellidos}` : "",
       inmuebleLabel: res?.vinculaciones[0]?.inmuebleLabel || "",
     };
-    if (form?.mode === "edit") store.update(id, item);
-    else store.create(item);
+    if (form?.mode === "edit") await updateMutation.mutateAsync(item);
+    else await createMutation.mutateAsync(item);
     setForm(null);
-  }, [form, store]);
+  }, [form, createMutation, updateMutation, residentes]);
 
   const fields = [
     { name: "placa", label: "Placa", type: "text" as const, placeholder: "ABC-123" },
@@ -63,16 +65,27 @@ export default function VehiculosPage() {
     { name: "estado", label: "Estado", type: "select" as const, options: [{ label: "Activo", value: "Activo" }, { label: "Inactivo", value: "Inactivo" }] },
   ];
 
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={Car} title="Vehículos del Condominio" subtitle="Cargando..." />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
-      <HeaderPage icon={Car} title="Vehículos del Condominio" subtitle={`${store.items.length} vehículos registrados`}>
+      <HeaderPage icon={Car} title="Vehículos del Condominio" subtitle={`${items.length} vehículos registrados`}>
         <Button variant="accent" size="md" onClick={() => setForm({ mode: "create" })}>
           <Plus className="h-4 w-4 mr-1.5" /> Nuevo Vehículo
         </Button>
       </HeaderPage>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {store.items.map(v => (
+        {items.map(v => (
           <div key={v.id} onClick={() => setForm({ mode: "edit", item: v })}
             className="bg-white rounded-2xl border border-surface-200 shadow-sm hover:shadow-md cursor-pointer group relative transition-all">
             <button onClick={e => { e.stopPropagation(); setDeleteTarget(v); }}
@@ -103,7 +116,7 @@ export default function VehiculosPage() {
       <FormDrawer open={form !== null} onClose={() => setForm(null)} onSubmit={handleSubmit} schema={schema}
         defaultValues={form?.item || undefined} title={form?.mode === "create" ? "Nuevo Vehículo" : "Editar Vehículo"} fields={fields} />
       <ConfirmDialog open={deleteTarget !== null} onClose={() => setDeleteTarget(null)}
-        onConfirm={() => { if (deleteTarget) store.remove(deleteTarget.id); setDeleteTarget(null); }}
+        onConfirm={async () => { if (deleteTarget) await deleteMutation.mutateAsync(deleteTarget.id); setDeleteTarget(null); }}
         title="Eliminar vehículo" message={`¿Eliminar "${deleteTarget?.marca} ${deleteTarget?.modelo}"?`} />
     </>
   );

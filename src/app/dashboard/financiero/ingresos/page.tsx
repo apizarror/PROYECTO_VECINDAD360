@@ -1,16 +1,15 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { TrendingUp, Plus, Search, Edit, Trash2 } from "lucide-react";
+import { TrendingUp, Plus, Search, Edit, Trash2, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
-import { useMockStore } from "@/hooks/use-mock-store";
-import { ingresos as initial, cuentasBancarias } from "@/lib/mock-data/financiero";
+import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
-import type { Ingreso } from "@/types";
+import type { Ingreso, CuentaBancaria } from "@/types";
 
 const schema = z.object({
   id: z.string().optional(),
@@ -28,29 +27,33 @@ const schema = z.object({
 });
 
 export default function IngresosPage() {
-  const store = useMockStore<Ingreso>(initial);
+  const { data: items = [], isLoading } = useApiList<Ingreso>("ingresos");
+  const createMutation = useApiCreate<Ingreso>("ingresos");
+  const updateMutation = useApiUpdate<Ingreso>("ingresos");
+  const deleteMutation = useApiDelete("ingresos");
+  const { data: cuentasBancarias = [] } = useApiList<CuentaBancaria>("cuentas-bancarias");
   const [search, setSearch] = useState("");
   const [origenFilter, setOrigenFilter] = useState("Todos");
   const [form, setForm] = useState<{ mode: "create" | "edit"; item?: Ingreso } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Ingreso | null>(null);
 
   const filtered = useMemo(() => {
-    let items = store.items;
-    if (search) { const q = search.toLowerCase(); items = items.filter(i => i.concepto.toLowerCase().includes(q) || i.residenteNombre?.toLowerCase().includes(q)); }
-    if (origenFilter !== "Todos") items = items.filter(i => i.origen === origenFilter);
-    return items;
-  }, [store.items, search, origenFilter]);
+    let result = items;
+    if (search) { const q = search.toLowerCase(); result = result.filter(i => i.concepto.toLowerCase().includes(q) || i.residenteNombre?.toLowerCase().includes(q)); }
+    if (origenFilter !== "Todos") result = result.filter(i => i.origen === origenFilter);
+    return result;
+  }, [items, search, origenFilter]);
 
   const total = useMemo(() => filtered.reduce((s, i) => s + i.monto, 0), [filtered]);
 
-  const handleSubmit = useCallback((data: Record<string, unknown>) => {
+  const handleSubmit = useCallback(async (data: Record<string, unknown>) => {
     const id = (data.id as string) || crypto.randomUUID();
     const ct = cuentasBancarias.find(c => c.id === data.cuentaBancariaId);
     const item: Ingreso = { ...data as unknown as Ingreso, id, cuentaBancariaNombre: ct ? `${ct.banco} ${ct.tipo}` : "" };
-    if (form?.mode === "edit") store.update(id, item);
-    else store.create(item);
+    if (form?.mode === "edit") await updateMutation.mutateAsync(item);
+    else await createMutation.mutateAsync(item);
     setForm(null);
-  }, [form, store]);
+  }, [form, createMutation, updateMutation, cuentasBancarias]);
 
   const fields = [
     { name: "concepto", label: "Concepto", type: "text" as const },
@@ -63,6 +66,17 @@ export default function IngresosPage() {
     { name: "registradoPor", label: "Registrado por", type: "text" as const },
     { name: "estado", label: "Estado", type: "select" as const, options: ["Confirmado", "Pendiente", "Anulado"].map(e => ({ label: e, value: e })) },
   ];
+
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={TrendingUp} title="Ingresos" subtitle="Entradas de dinero" />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -136,7 +150,7 @@ export default function IngresosPage() {
       <FormDrawer open={form !== null} onClose={() => setForm(null)} onSubmit={handleSubmit} schema={schema}
         defaultValues={form?.item || undefined} title={form?.mode === "create" ? "Registrar Ingreso" : "Editar Ingreso"} fields={fields} />
       <ConfirmDialog open={deleteTarget !== null} onClose={() => setDeleteTarget(null)}
-        onConfirm={() => { if (deleteTarget) store.remove(deleteTarget.id); setDeleteTarget(null); }}
+        onConfirm={async () => { if (deleteTarget) await deleteMutation.mutateAsync(deleteTarget.id); setDeleteTarget(null); }}
         title="Eliminar ingreso" message={`¿Eliminar "${deleteTarget?.concepto}"?`} />
     </>
   );

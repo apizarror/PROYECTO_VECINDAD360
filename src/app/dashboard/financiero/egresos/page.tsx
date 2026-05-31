@@ -1,16 +1,15 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { TrendingDown, Plus, Search, Edit, Trash2 } from "lucide-react";
+import { TrendingDown, Plus, Search, Edit, Trash2, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
-import { useMockStore } from "@/hooks/use-mock-store";
-import { egresos as initial, cuentasBancarias } from "@/lib/mock-data/financiero";
+import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
-import type { Egreso } from "@/types";
+import type { Egreso, CuentaBancaria } from "@/types";
 
 const schema = z.object({
   id: z.string().optional(),
@@ -29,29 +28,33 @@ const schema = z.object({
 });
 
 export default function EgresosPage() {
-  const store = useMockStore<Egreso>(initial);
+  const { data: items = [], isLoading } = useApiList<Egreso>("egresos");
+  const createMutation = useApiCreate<Egreso>("egresos");
+  const updateMutation = useApiUpdate<Egreso>("egresos");
+  const deleteMutation = useApiDelete("egresos");
+  const { data: cuentasBancarias = [] } = useApiList<CuentaBancaria>("cuentas-bancarias");
   const [search, setSearch] = useState("");
   const [estadoFilter, setEstadoFilter] = useState("Todos");
   const [form, setForm] = useState<{ mode: "create" | "edit"; item?: Egreso } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Egreso | null>(null);
 
   const filtered = useMemo(() => {
-    let items = store.items;
-    if (search) { const q = search.toLowerCase(); items = items.filter(e => e.concepto.toLowerCase().includes(q) || e.proveedor.toLowerCase().includes(q)); }
-    if (estadoFilter !== "Todos") items = items.filter(e => e.estado === estadoFilter);
-    return items;
-  }, [store.items, search, estadoFilter]);
+    let result = items;
+    if (search) { const q = search.toLowerCase(); result = result.filter(e => e.concepto.toLowerCase().includes(q) || e.proveedor.toLowerCase().includes(q)); }
+    if (estadoFilter !== "Todos") result = result.filter(e => e.estado === estadoFilter);
+    return result;
+  }, [items, search, estadoFilter]);
 
   const total = useMemo(() => filtered.reduce((s, e) => s + e.monto, 0), [filtered]);
 
-  const handleSubmit = useCallback((data: Record<string, unknown>) => {
+  const handleSubmit = useCallback(async (data: Record<string, unknown>) => {
     const id = (data.id as string) || crypto.randomUUID();
     const ct = cuentasBancarias.find(c => c.id === data.cuentaBancariaId);
     const item: Egreso = { ...data as unknown as Egreso, id, cuentaBancariaNombre: ct ? `${ct.banco} ${ct.tipo}` : "" };
-    if (form?.mode === "edit") store.update(id, item);
-    else store.create(item);
+    if (form?.mode === "edit") await updateMutation.mutateAsync(item);
+    else await createMutation.mutateAsync(item);
     setForm(null);
-  }, [form, store]);
+  }, [form, createMutation, updateMutation, cuentasBancarias]);
 
   const fields = [
     { name: "concepto", label: "Concepto", type: "text" as const },
@@ -66,6 +69,17 @@ export default function EgresosPage() {
     { name: "registradoPor", label: "Registrado por", type: "text" as const },
     { name: "estado", label: "Estado", type: "select" as const, options: ["Pendiente", "Pagado", "Anulado"].map(e => ({ label: e, value: e })) },
   ];
+
+  if (isLoading) {
+    return (
+      <>
+        <HeaderPage icon={TrendingDown} title="Egresos" subtitle="Salidas de dinero" />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -138,7 +152,7 @@ export default function EgresosPage() {
       <FormDrawer open={form !== null} onClose={() => setForm(null)} onSubmit={handleSubmit} schema={schema}
         defaultValues={form?.item || undefined} title={form?.mode === "create" ? "Registrar Egreso" : "Editar Egreso"} fields={fields} />
       <ConfirmDialog open={deleteTarget !== null} onClose={() => setDeleteTarget(null)}
-        onConfirm={() => { if (deleteTarget) store.remove(deleteTarget.id); setDeleteTarget(null); }}
+        onConfirm={async () => { if (deleteTarget) await deleteMutation.mutateAsync(deleteTarget.id); setDeleteTarget(null); }}
         title="Eliminar egreso" message={`¿Eliminar "${deleteTarget?.concepto}"?`} />
     </>
   );
