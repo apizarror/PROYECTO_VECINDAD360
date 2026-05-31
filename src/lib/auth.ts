@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 
 const SESSION_COOKIE = "vecindad360_session";
 const SESSION_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days
+const COOKIE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || "/";
 
 // ─── Password Hashing ─────────────────────────
 // bcrypt is used so the format matches the seed (`prisma/seed.mts`).
@@ -35,7 +36,7 @@ export async function createSession(userId: string) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    path: "/",
+    path: COOKIE_PATH,
     expires: expiresAt,
   });
 
@@ -72,7 +73,11 @@ export async function destroySession() {
 
   if (token) {
     await prisma.session.deleteMany({ where: { token } });
-    cookieStore.delete(SESSION_COOKIE);
+    cookieStore.set(SESSION_COOKIE, "", {
+      httpOnly: true,
+      path: COOKIE_PATH,
+      expires: new Date(0),
+    });
   }
 }
 
