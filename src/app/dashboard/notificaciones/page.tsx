@@ -3,20 +3,44 @@ import { useState } from "react";
 import { Bell, CheckCheck, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
-import { useApiList } from "@/hooks/use-api";
+import { useApiList, useApiUpdate } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
-import type { Notificacion } from "@/types";
+
+interface Notificacion {
+  id: string;
+  condominioId: string;
+  userId: string;
+  titulo: string;
+  descripcion: string;
+  tipo: string;
+  leida: boolean;
+  fecha: string;
+  createdAt: string;
+}
 
 export default function NotificacionesPage() {
   const { data: notificacionesApi = [], isLoading } = useApiList<Notificacion>("notificaciones");
+  const updateMutation = useApiUpdate<Notificacion>("notificaciones");
   const [notifs, setNotifs] = useState<Notificacion[] | null>(null);
   const [filter, setFilter] = useState("Todas");
 
   // Use local state once loaded, to allow marking as read client-side
   const items = notifs ?? notificacionesApi;
 
-  const marcarLeida = (id: string) => setNotifs(prev => (prev ?? notificacionesApi).map(n => n.id === id ? { ...n, leida: true } : n));
-  const marcarTodas = () => setNotifs(prev => (prev ?? notificacionesApi).map(n => ({ ...n, leida: true })));
+  const marcarLeida = (id: string) => {
+    setNotifs(prev => (prev ?? notificacionesApi).map(n => n.id === id ? { ...n, leida: true } : n));
+    const notif = (notifs ?? notificacionesApi).find(n => n.id === id);
+    if (notif && !notif.leida) {
+      updateMutation.mutateAsync({ ...notif, leida: true });
+    }
+  };
+  const marcarTodas = () => {
+    const current = notifs ?? notificacionesApi;
+    setNotifs(current.map(n => ({ ...n, leida: true })));
+    current.filter(n => !n.leida).forEach(n => {
+      updateMutation.mutateAsync({ ...n, leida: true });
+    });
+  };
   const filtered = filter === "Todas" ? items : filter === "No leídas" ? items.filter(n => !n.leida) : items.filter(n => n.leida);
   const noLeidas = items.filter(n => !n.leida).length;
   const tipoColor: Record<string, string> = { cuota: "bg-amber-100 text-amber-700", reserva: "bg-blue-100 text-blue-700", incidencia: "bg-red-100 text-red-700", visita: "bg-purple-100 text-purple-700", pago: "bg-green-100 text-green-700" };

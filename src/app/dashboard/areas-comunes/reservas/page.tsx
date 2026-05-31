@@ -9,16 +9,29 @@ import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
 import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
-import type { Reserva, AreaComun, Persona } from "@/types";
+import type { AreaComun, Persona } from "@/types";
+
+interface ReservaWithRelations {
+  id: string;
+  areaComunId: string;
+  areaComun?: { nombre: string };
+  personaId: string;
+  persona?: { nombres: string; apellidos: string };
+  inmuebleId?: string;
+  inmueble?: { numero: string };
+  fecha: string;
+  horaInicio: string;
+  horaFin: string;
+  costoTotal: number;
+  estado: "Solicitada" | "Confirmada" | "Pagada" | "Cancelada" | "Realizada";
+  observaciones: string;
+}
 
 const schema = z.object({
   id: z.string().optional(),
   areaComunId: z.string().min(1),
-  areaComunNombre: z.string().optional(),
-  residenteId: z.string().min(1),
-  residenteNombre: z.string().optional(),
+  personaId: z.string().min(1),
   inmuebleId: z.string().optional(),
-  inmuebleLabel: z.string().optional(),
   fecha: z.string().min(1),
   horaInicio: z.string().min(1),
   horaFin: z.string().min(1),
@@ -28,43 +41,48 @@ const schema = z.object({
 });
 
 export default function ReservasPage() {
-  const { data: items = [], isLoading } = useApiList<Reserva>("reservas");
-  const createMutation = useApiCreate<Reserva>("reservas");
-  const updateMutation = useApiUpdate<Reserva>("reservas");
+  const { data: items = [], isLoading } = useApiList<ReservaWithRelations>("reservas");
+  const createMutation = useApiCreate<ReservaWithRelations>("reservas");
+  const updateMutation = useApiUpdate<ReservaWithRelations>("reservas");
   const deleteMutation = useApiDelete("reservas");
   const { data: areasComunes = [] } = useApiList<AreaComun>("areas-comunes");
   const { data: residentes = [] } = useApiList<Persona>("personas");
   const [search, setSearch] = useState("");
   const [estadoFilter, setEstadoFilter] = useState("Todas");
-  const [form, setForm] = useState<{ mode: "create" | "edit"; item?: Reserva } | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Reserva | null>(null);
+  const [form, setForm] = useState<{ mode: "create" | "edit"; item?: ReservaWithRelations } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ReservaWithRelations | null>(null);
+
+  const getResidenteNombre = (r: ReservaWithRelations) =>
+    r.persona ? `${r.persona.nombres} ${r.persona.apellidos}` : "";
+  const getAreaComunNombre = (r: ReservaWithRelations) =>
+    r.areaComun?.nombre || "";
+  const getInmuebleLabel = (r: ReservaWithRelations) =>
+    r.inmueble?.numero || "";
 
   const filtered = useMemo(() => {
     let result = items;
-    if (search) { const q = search.toLowerCase(); result = result.filter(r => r.residenteNombre.toLowerCase().includes(q) || r.areaComunNombre.toLowerCase().includes(q)); }
+    if (search) { const q = search.toLowerCase(); result = result.filter(r => getResidenteNombre(r).toLowerCase().includes(q) || getAreaComunNombre(r).toLowerCase().includes(q)); }
     if (estadoFilter !== "Todas") result = result.filter(r => r.estado === estadoFilter);
     return result;
   }, [items, search, estadoFilter]);
 
   const handleSubmit = useCallback(async (data: Record<string, unknown>) => {
     const id = (data.id as string) || crypto.randomUUID();
-    const area = areasComunes.find(a => a.id === data.areaComunId);
-    const residente = residentes.find(r => r.id === data.residenteId);
-    const item: Reserva = {
-      ...data as unknown as Reserva,
+    const residente = residentes.find(r => r.id === data.personaId);
+    const item = {
+      ...data as unknown as ReservaWithRelations,
       id,
-      areaComunNombre: area?.nombre || "",
-      residenteNombre: residente ? `${residente.nombres} ${residente.apellidos}` : "",
-      inmuebleLabel: residente?.vinculaciones[0]?.inmuebleLabel || "",
+      personaId: data.personaId as string,
+      inmuebleId: (data.inmuebleId as string) || residente?.vinculaciones[0]?.inmuebleId || "",
     };
-    if (form?.mode === "edit") await updateMutation.mutateAsync(item);
+    if (form?.mode === "edit") await updateMutation.mutateAsync(item as ReservaWithRelations);
     else await createMutation.mutateAsync(item);
     setForm(null);
-  }, [form, createMutation, updateMutation, areasComunes, residentes]);
+  }, [form, createMutation, updateMutation, residentes]);
 
   const fields = [
-    { name: "areaComunId", label: "Área común", type: "select" as const, options: areasComunes.filter(a => a.estado === "Activa").map(a => ({ label: a.nombre, value: a.id })) },
-    { name: "residenteId", label: "Residente", type: "select" as const, options: residentes.filter(r => r.activo).map(r => ({ label: `${r.nombres} ${r.apellidos}`, value: r.id })) },
+    { name: "areaComunId", label: "Area comun", type: "select" as const, options: areasComunes.filter(a => a.estado === "Activa").map(a => ({ label: a.nombre, value: a.id })) },
+    { name: "personaId", label: "Residente", type: "select" as const, options: residentes.filter(r => r.activo).map(r => ({ label: `${r.nombres} ${r.apellidos}`, value: r.id })) },
     { name: "fecha", label: "Fecha", type: "text" as const, placeholder: "2026-05-20" },
     { name: "horaInicio", label: "Hora inicio", type: "text" as const, placeholder: "18:00" },
     { name: "horaFin", label: "Hora fin", type: "text" as const, placeholder: "22:00" },
@@ -78,7 +96,7 @@ export default function ReservasPage() {
   if (isLoading) {
     return (
       <>
-        <HeaderPage icon={CalendarDays} title="Reservas" subtitle="Gestión de reservas de áreas comunes" />
+        <HeaderPage icon={CalendarDays} title="Reservas" subtitle="Gestion de reservas de areas comunes" />
         <div className="flex items-center justify-center py-20">
           <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
         </div>
@@ -88,7 +106,7 @@ export default function ReservasPage() {
 
   return (
     <>
-      <HeaderPage icon={CalendarDays} title="Reservas" subtitle="Gestión de reservas de áreas comunes">
+      <HeaderPage icon={CalendarDays} title="Reservas" subtitle="Gestion de reservas de areas comunes">
         <Button variant="accent" size="md" onClick={() => setForm({ mode: "create" })}>
           <Plus className="h-4 w-4 mr-1.5" /> Nueva Reserva
         </Button>
@@ -112,15 +130,15 @@ export default function ReservasPage() {
           <table className="w-full">
             <thead>
               <tr className="text-left text-xs font-medium text-surface-500 uppercase tracking-wider border-b border-surface-100">
-                <th className="px-5 py-3">Área</th><th className="px-5 py-3">Residente</th><th className="px-5 py-3">Fecha</th>
+                <th className="px-5 py-3">Area</th><th className="px-5 py-3">Residente</th><th className="px-5 py-3">Fecha</th>
                 <th className="px-5 py-3">Horario</th><th className="px-5 py-3 text-right">Costo</th><th className="px-5 py-3">Estado</th><th className="px-5 py-3 w-10" />
               </tr>
             </thead>
             <tbody>
               {filtered.sort((a, b) => b.fecha.localeCompare(a.fecha) || b.horaInicio.localeCompare(a.horaInicio)).map(r => (
                 <tr key={r.id} className="border-b border-surface-50 hover:bg-surface-50 transition-colors group">
-                  <td className="px-5 py-3 text-sm font-medium text-surface-800">{r.areaComunNombre}</td>
-                  <td className="px-5 py-3"><p className="text-sm text-surface-700">{r.residenteNombre}</p><p className="text-xs text-surface-400">{r.inmuebleLabel}</p></td>
+                  <td className="px-5 py-3 text-sm font-medium text-surface-800">{getAreaComunNombre(r)}</td>
+                  <td className="px-5 py-3"><p className="text-sm text-surface-700">{getResidenteNombre(r)}</p><p className="text-xs text-surface-400">{getInmuebleLabel(r)}</p></td>
                   <td className="px-5 py-3 text-sm text-surface-600">{r.fecha}</td>
                   <td className="px-5 py-3 text-sm text-surface-600">{r.horaInicio} - {r.horaFin}</td>
                   <td className="px-5 py-3 text-sm font-semibold text-surface-800 text-right tabular-nums">{r.costoTotal > 0 ? `S/ ${r.costoTotal}` : "Gratis"}</td>
@@ -151,7 +169,7 @@ export default function ReservasPage() {
         defaultValues={form?.item || undefined} title={form?.mode === "create" ? "Nueva Reserva" : "Editar Reserva"} fields={fields} />
       <ConfirmDialog open={deleteTarget !== null} onClose={() => setDeleteTarget(null)}
         onConfirm={async () => { if (deleteTarget) await deleteMutation.mutateAsync(deleteTarget.id); setDeleteTarget(null); }}
-        title="Eliminar reserva" message={`¿Eliminar reserva de "${deleteTarget?.residenteNombre}"?`} />
+        title="Eliminar reserva" message={`Eliminar reserva de "${deleteTarget ? getResidenteNombre(deleteTarget) : ""}"?`} />
     </>
   );
 }

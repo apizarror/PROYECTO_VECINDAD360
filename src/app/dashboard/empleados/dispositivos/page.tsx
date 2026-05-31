@@ -9,7 +9,19 @@ import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
 import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
-import type { Dispositivo, Empleado } from "@/types";
+import type { Empleado } from "@/types";
+
+interface DispositivoWithRelations {
+  id: string;
+  tipo: string;
+  marca: string;
+  modelo: string;
+  numeroSerie: string;
+  empleadoId?: string;
+  empleado?: { nombres: string; apellidos: string };
+  fechaAsignacion?: string;
+  estado: "Asignado" | "Disponible" | "Mantenimiento" | "Baja";
+}
 
 const schema = z.object({
   id: z.string().optional(),
@@ -17,51 +29,52 @@ const schema = z.object({
   marca: z.string().min(1),
   modelo: z.string().min(1),
   numeroSerie: z.string().min(1),
-  empleadoAsignadoId: z.string().optional(),
-  empleadoAsignadoNombre: z.string().optional(),
+  empleadoId: z.string().optional(),
   fechaAsignacion: z.string().optional(),
   estado: z.enum(["Asignado", "Disponible", "Mantenimiento", "Baja"]),
 });
 
 export default function DispositivosPage() {
-  const { data: items = [], isLoading } = useApiList<Dispositivo>("dispositivos");
-  const createMutation = useApiCreate<Dispositivo>("dispositivos");
-  const updateMutation = useApiUpdate<Dispositivo>("dispositivos");
+  const { data: items = [], isLoading } = useApiList<DispositivoWithRelations>("dispositivos");
+  const createMutation = useApiCreate<DispositivoWithRelations>("dispositivos");
+  const updateMutation = useApiUpdate<DispositivoWithRelations>("dispositivos");
   const deleteMutation = useApiDelete("dispositivos");
   const { data: empleados = [] } = useApiList<Empleado>("empleados");
-  const [form, setForm] = useState<{ mode: "create" | "edit"; item?: Dispositivo } | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Dispositivo | null>(null);
+  const [form, setForm] = useState<{ mode: "create" | "edit"; item?: DispositivoWithRelations } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DispositivoWithRelations | null>(null);
+
+  const getEmpleadoNombre = (d: DispositivoWithRelations) =>
+    d.empleado ? `${d.empleado.nombres} ${d.empleado.apellidos}` : "";
 
   const handleSubmit = useCallback(
     async (data: Record<string, unknown>) => {
       const id = (data.id as string) || crypto.randomUUID();
-      const emp = empleados.find((e) => e.id === data.empleadoAsignadoId);
-      const item: Dispositivo = {
+      const item = {
         ...data,
         id,
-        empleadoAsignadoNombre: emp ? `${emp.nombres} ${emp.apellidos}` : "",
-      } as unknown as Dispositivo;
+        empleadoId: (data.empleadoId as string) || undefined,
+      } as unknown as DispositivoWithRelations;
       if (form?.mode === "edit") await updateMutation.mutateAsync(item);
       else await createMutation.mutateAsync(item);
       setForm(null);
     },
-    [form, createMutation, updateMutation, empleados]
+    [form, createMutation, updateMutation]
   );
 
   const fields = [
     { name: "tipo", label: "Tipo", type: "text" as const, placeholder: "Radio, Tablet, Llave..." },
     { name: "marca", label: "Marca", type: "text" as const },
     { name: "modelo", label: "Modelo", type: "text" as const },
-    { name: "numeroSerie", label: "N° de serie", type: "text" as const },
+    { name: "numeroSerie", label: "N de serie", type: "text" as const },
     {
-      name: "empleadoAsignadoId",
+      name: "empleadoId",
       label: "Empleado asignado",
       type: "select" as const,
       options: empleados
         .filter((e) => e.estado === "Activo")
         .map((e) => ({ label: `${e.nombres} ${e.apellidos}`, value: e.id })),
     },
-    { name: "fechaAsignacion", label: "Fecha de asignación", type: "text" as const },
+    { name: "fechaAsignacion", label: "Fecha de asignacion", type: "text" as const },
     {
       name: "estado",
       label: "Estado",
@@ -98,51 +111,54 @@ export default function DispositivosPage() {
       </HeaderPage>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {items.map((d) => (
-          <div
-            key={d.id}
-            onClick={() => setForm({ mode: "edit", item: d })}
-            className="bg-white rounded-2xl border border-surface-200 shadow-sm hover:shadow-md cursor-pointer group relative transition-all"
-          >
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setDeleteTarget(d);
-              }}
-              className="absolute top-3 right-3 z-10 p-2 rounded-lg bg-white/80 text-surface-400 hover:text-red-500 hover:bg-red-50 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all"
+        {items.map((d) => {
+          const empleadoNombre = getEmpleadoNombre(d);
+          return (
+            <div
+              key={d.id}
+              onClick={() => setForm({ mode: "edit", item: d })}
+              className="bg-white rounded-2xl border border-surface-200 shadow-sm hover:shadow-md cursor-pointer group relative transition-all"
             >
-              <Trash2 className="h-4 w-4" />
-            </button>
-            <div className="p-5">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-bold text-surface-800">{d.tipo}</span>
-                <span
-                  className={cn(
-                    "text-[10px] font-bold px-2 py-0.5 rounded-full",
-                    d.estado === "Asignado"
-                      ? "bg-green-50 text-green-700"
-                      : d.estado === "Disponible"
-                      ? "bg-blue-50 text-blue-600"
-                      : d.estado === "Mantenimiento"
-                      ? "bg-amber-50 text-amber-700"
-                      : "bg-surface-100 text-surface-500"
-                  )}
-                >
-                  {d.estado}
-                </span>
-              </div>
-              <p className="text-xs text-surface-500">
-                {d.marca} {d.modelo}
-              </p>
-              <p className="text-xs text-surface-400 font-mono mt-1">{d.numeroSerie}</p>
-              {d.empleadoAsignadoNombre && (
-                <p className="text-xs text-surface-600 mt-2 pt-2 border-t border-surface-100">
-                  Asignado a: <span className="font-medium">{d.empleadoAsignadoNombre}</span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteTarget(d);
+                }}
+                className="absolute top-3 right-3 z-10 p-2 rounded-lg bg-white/80 text-surface-400 hover:text-red-500 hover:bg-red-50 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+              <div className="p-5">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-bold text-surface-800">{d.tipo}</span>
+                  <span
+                    className={cn(
+                      "text-[10px] font-bold px-2 py-0.5 rounded-full",
+                      d.estado === "Asignado"
+                        ? "bg-green-50 text-green-700"
+                        : d.estado === "Disponible"
+                        ? "bg-blue-50 text-blue-600"
+                        : d.estado === "Mantenimiento"
+                        ? "bg-amber-50 text-amber-700"
+                        : "bg-surface-100 text-surface-500"
+                    )}
+                  >
+                    {d.estado}
+                  </span>
+                </div>
+                <p className="text-xs text-surface-500">
+                  {d.marca} {d.modelo}
                 </p>
-              )}
+                <p className="text-xs text-surface-400 font-mono mt-1">{d.numeroSerie}</p>
+                {empleadoNombre && (
+                  <p className="text-xs text-surface-600 mt-2 pt-2 border-t border-surface-100">
+                    Asignado a: <span className="font-medium">{empleadoNombre}</span>
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <FormDrawer
@@ -162,7 +178,7 @@ export default function DispositivosPage() {
           setDeleteTarget(null);
         }}
         title="Eliminar dispositivo"
-        message={`¿Eliminar "${deleteTarget?.marca} ${deleteTarget?.modelo}"?`}
+        message={`Eliminar "${deleteTarget?.marca} ${deleteTarget?.modelo}"?`}
       />
     </>
   );

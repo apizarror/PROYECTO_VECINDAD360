@@ -9,7 +9,23 @@ import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
 import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
-import type { Egreso, CuentaBancaria } from "@/types";
+import type { CuentaBancaria } from "@/types";
+
+interface EgresoWithRelations {
+  id: string;
+  concepto: string;
+  monto: number;
+  categoria: string;
+  proveedor: string;
+  cuentaBancariaId: string;
+  cuentaBancaria?: { banco: string; tipo: string };
+  metodoPago: "Efectivo" | "Transferencia" | "Yape" | "Plin" | "Cheque";
+  fechaRegistro: string;
+  fechaPago: string;
+  descripcion: string;
+  estado: "Pendiente" | "Pagado" | "Anulado";
+  registradoPor: string;
+}
 
 const schema = z.object({
   id: z.string().optional(),
@@ -18,7 +34,6 @@ const schema = z.object({
   categoria: z.string().min(1),
   proveedor: z.string().min(1),
   cuentaBancariaId: z.string().min(1),
-  cuentaBancariaNombre: z.string().optional(),
   metodoPago: z.enum(["Efectivo", "Transferencia", "Yape", "Plin", "Cheque"]),
   fechaRegistro: z.string().min(1),
   fechaPago: z.string().optional(),
@@ -28,15 +43,18 @@ const schema = z.object({
 });
 
 export default function EgresosPage() {
-  const { data: items = [], isLoading } = useApiList<Egreso>("egresos");
-  const createMutation = useApiCreate<Egreso>("egresos");
-  const updateMutation = useApiUpdate<Egreso>("egresos");
+  const { data: items = [], isLoading } = useApiList<EgresoWithRelations>("egresos");
+  const createMutation = useApiCreate<EgresoWithRelations>("egresos");
+  const updateMutation = useApiUpdate<EgresoWithRelations>("egresos");
   const deleteMutation = useApiDelete("egresos");
   const { data: cuentasBancarias = [] } = useApiList<CuentaBancaria>("cuentas-bancarias");
   const [search, setSearch] = useState("");
   const [estadoFilter, setEstadoFilter] = useState("Todos");
-  const [form, setForm] = useState<{ mode: "create" | "edit"; item?: Egreso } | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Egreso | null>(null);
+  const [form, setForm] = useState<{ mode: "create" | "edit"; item?: EgresoWithRelations } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<EgresoWithRelations | null>(null);
+
+  const getCuentaNombre = (e: EgresoWithRelations) =>
+    e.cuentaBancaria ? `${e.cuentaBancaria.banco} ${e.cuentaBancaria.tipo}` : "";
 
   const filtered = useMemo(() => {
     let result = items;
@@ -49,23 +67,26 @@ export default function EgresosPage() {
 
   const handleSubmit = useCallback(async (data: Record<string, unknown>) => {
     const id = (data.id as string) || crypto.randomUUID();
-    const ct = cuentasBancarias.find(c => c.id === data.cuentaBancariaId);
-    const item: Egreso = { ...data as unknown as Egreso, id, cuentaBancariaNombre: ct ? `${ct.banco} ${ct.tipo}` : "" };
-    if (form?.mode === "edit") await updateMutation.mutateAsync(item);
+    const item = {
+      ...data as unknown as EgresoWithRelations,
+      id,
+      cuentaBancariaId: data.cuentaBancariaId as string,
+    };
+    if (form?.mode === "edit") await updateMutation.mutateAsync(item as EgresoWithRelations);
     else await createMutation.mutateAsync(item);
     setForm(null);
-  }, [form, createMutation, updateMutation, cuentasBancarias]);
+  }, [form, createMutation, updateMutation]);
 
   const fields = [
     { name: "concepto", label: "Concepto", type: "text" as const },
     { name: "monto", label: "Monto (S/)", type: "number" as const },
-    { name: "categoria", label: "Categoría (rubro)", type: "text" as const, placeholder: "Mantenimiento" },
+    { name: "categoria", label: "Categoria (rubro)", type: "text" as const, placeholder: "Mantenimiento" },
     { name: "proveedor", label: "Proveedor", type: "text" as const },
     { name: "cuentaBancariaId", label: "Cuenta bancaria", type: "select" as const, options: cuentasBancarias.map(c => ({ label: `${c.banco} - ${c.tipo}`, value: c.id })) },
-    { name: "metodoPago", label: "Método de pago", type: "select" as const, options: ["Efectivo", "Transferencia", "Yape", "Plin", "Cheque"].map(m => ({ label: m, value: m })) },
+    { name: "metodoPago", label: "Metodo de pago", type: "select" as const, options: ["Efectivo", "Transferencia", "Yape", "Plin", "Cheque"].map(m => ({ label: m, value: m })) },
     { name: "fechaRegistro", label: "Fecha de registro", type: "text" as const },
     { name: "fechaPago", label: "Fecha de pago", type: "text" as const },
-    { name: "descripcion", label: "Descripción", type: "textarea" as const },
+    { name: "descripcion", label: "Descripcion", type: "textarea" as const },
     { name: "registradoPor", label: "Registrado por", type: "text" as const },
     { name: "estado", label: "Estado", type: "select" as const, options: ["Pendiente", "Pagado", "Anulado"].map(e => ({ label: e, value: e })) },
   ];
@@ -107,8 +128,8 @@ export default function EgresosPage() {
           <table className="w-full">
             <thead>
               <tr className="text-left text-xs font-medium text-surface-500 uppercase tracking-wider border-b border-surface-100">
-                <th className="px-5 py-3">Concepto</th><th className="px-5 py-3 text-right">Monto</th><th className="px-5 py-3">Categoría</th>
-                <th className="px-5 py-3">Cuenta</th><th className="px-5 py-3">Método</th><th className="px-5 py-3">Registro</th><th className="px-5 py-3">Estado</th><th className="px-5 py-3 w-10" />
+                <th className="px-5 py-3">Concepto</th><th className="px-5 py-3 text-right">Monto</th><th className="px-5 py-3">Categoria</th>
+                <th className="px-5 py-3">Cuenta</th><th className="px-5 py-3">Metodo</th><th className="px-5 py-3">Registro</th><th className="px-5 py-3">Estado</th><th className="px-5 py-3 w-10" />
               </tr>
             </thead>
             <tbody>
@@ -120,7 +141,7 @@ export default function EgresosPage() {
                   </td>
                   <td className="px-5 py-3 text-sm font-semibold text-red-600 text-right tabular-nums">S/ {e.monto.toLocaleString()}</td>
                   <td className="px-5 py-3 text-sm text-surface-600">{e.categoria}</td>
-                  <td className="px-5 py-3 text-xs text-surface-500">{e.cuentaBancariaNombre}</td>
+                  <td className="px-5 py-3 text-xs text-surface-500">{getCuentaNombre(e)}</td>
                   <td className="px-5 py-3">
                     <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full",
                       e.metodoPago === "Yape" ? "bg-purple-50 text-purple-600" :
@@ -153,7 +174,7 @@ export default function EgresosPage() {
         defaultValues={form?.item || undefined} title={form?.mode === "create" ? "Registrar Egreso" : "Editar Egreso"} fields={fields} />
       <ConfirmDialog open={deleteTarget !== null} onClose={() => setDeleteTarget(null)}
         onConfirm={async () => { if (deleteTarget) await deleteMutation.mutateAsync(deleteTarget.id); setDeleteTarget(null); }}
-        title="Eliminar egreso" message={`¿Eliminar "${deleteTarget?.concepto}"?`} />
+        title="Eliminar egreso" message={`Eliminar "${deleteTarget?.concepto}"?`} />
     </>
   );
 }

@@ -9,28 +9,41 @@ import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
 import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
-import type { Multa, Persona } from "@/types";
+import type { Persona } from "@/types";
+
+interface MultaWithRelations {
+  id: string;
+  personaId: string;
+  persona?: { nombres: string; apellidos: string };
+  inmuebleId: string;
+  inmueble?: { numero: string };
+  motivo: "ruido" | "mascota" | "basura" | "area_comun" | "estacionamiento" | "otro";
+  descripcion: string;
+  monto: number;
+  fechaEmision: string;
+  fechaVencimiento: string;
+  estado: "Pendiente" | "Pagada" | "Anulada" | "Vencida";
+  aplicadoPor: string;
+}
 
 const multaSchema = z.object({
   id: z.string().optional(),
-  residenteId: z.string().min(1, "Selecciona un residente"),
-  residenteNombre: z.string().optional(),
+  personaId: z.string().min(1, "Selecciona un residente"),
   inmuebleId: z.string().optional(),
-  inmuebleLabel: z.string().optional(),
   motivo: z.enum(["ruido", "mascota", "basura", "area_comun", "estacionamiento", "otro"]),
-  descripcion: z.string().min(10, "Mínimo 10 caracteres"),
-  monto: z.number().min(1, "Mínimo S/ 1"),
+  descripcion: z.string().min(10, "Minimo 10 caracteres"),
+  monto: z.number().min(1, "Minimo S/ 1"),
   fechaEmision: z.string().min(1, "Requerido"),
   fechaVencimiento: z.string().min(1, "Requerido"),
   estado: z.enum(["Pendiente", "Pagada", "Anulada", "Vencida"]),
-  aplicadaPor: z.string().min(1, "Requerido"),
+  aplicadoPor: z.string().min(1, "Requerido"),
 });
 
 const motivoLabels: Record<string, string> = {
   ruido: "Ruido",
   mascota: "Mascota",
   basura: "Basura",
-  area_comun: "Área Común",
+  area_comun: "Area Comun",
   estacionamiento: "Estacionamiento",
   otro: "Otro",
 };
@@ -38,21 +51,26 @@ const motivoLabels: Record<string, string> = {
 const estados = ["Todas", "Pendiente", "Pagada", "Anulada", "Vencida"] as const;
 
 export default function MultasPage() {
-  const { data: items = [], isLoading } = useApiList<Multa>("multas");
-  const createMutation = useApiCreate<Multa>("multas");
-  const updateMutation = useApiUpdate<Multa>("multas");
+  const { data: items = [], isLoading } = useApiList<MultaWithRelations>("multas");
+  const createMutation = useApiCreate<MultaWithRelations>("multas");
+  const updateMutation = useApiUpdate<MultaWithRelations>("multas");
   const deleteMutation = useApiDelete("multas");
   const { data: residentes = [] } = useApiList<Persona>("personas");
   const [search, setSearch] = useState("");
   const [estadoFilter, setEstadoFilter] = useState<string>("Todas");
-  const [form, setForm] = useState<{ mode: "create" | "edit"; item?: Multa } | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Multa | null>(null);
+  const [form, setForm] = useState<{ mode: "create" | "edit"; item?: MultaWithRelations } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<MultaWithRelations | null>(null);
+
+  const getResidenteNombre = (m: MultaWithRelations) =>
+    m.persona ? `${m.persona.nombres} ${m.persona.apellidos}` : "";
+  const getInmuebleLabel = (m: MultaWithRelations) =>
+    m.inmueble?.numero || "";
 
   const filtered = useMemo(() => {
     let result = items;
     if (search) {
       const q = search.toLowerCase();
-      result = result.filter((m) => m.residenteNombre.toLowerCase().includes(q) || m.inmuebleLabel.toLowerCase().includes(q));
+      result = result.filter((m) => getResidenteNombre(m).toLowerCase().includes(q) || getInmuebleLabel(m).toLowerCase().includes(q));
     }
     if (estadoFilter !== "Todas") {
       result = result.filter((m) => m.estado === estadoFilter);
@@ -63,22 +81,20 @@ export default function MultasPage() {
   const handleSubmit = useCallback(
     async (data: Record<string, unknown>) => {
       const id = (data.id as string) || crypto.randomUUID();
-      const residente = residentes.find((r) => r.id === data.residenteId);
-      const item: Multa = {
+      const residente = residentes.find((r) => r.id === data.personaId);
+      const item = {
         id,
-        residenteId: data.residenteId as string,
-        residenteNombre: (data.residenteNombre as string) || (residente ? `${residente.nombres} ${residente.apellidos}` : ""),
+        personaId: data.personaId as string,
         inmuebleId: (data.inmuebleId as string) || residente?.vinculaciones[0]?.inmuebleId || "",
-        inmuebleLabel: (data.inmuebleLabel as string) || residente?.vinculaciones[0]?.inmuebleLabel || "",
-        motivo: data.motivo as Multa["motivo"],
+        motivo: data.motivo as MultaWithRelations["motivo"],
         descripcion: data.descripcion as string,
         monto: data.monto as number,
         fechaEmision: data.fechaEmision as string,
         fechaVencimiento: data.fechaVencimiento as string,
-        estado: data.estado as Multa["estado"],
-        aplicadaPor: data.aplicadaPor as string,
+        estado: data.estado as MultaWithRelations["estado"],
+        aplicadoPor: data.aplicadoPor as string,
       };
-      if (form?.mode === "edit") await updateMutation.mutateAsync(item);
+      if (form?.mode === "edit") await updateMutation.mutateAsync(item as MultaWithRelations);
       else await createMutation.mutateAsync(item);
       setForm(null);
     },
@@ -91,13 +107,13 @@ export default function MultasPage() {
   }, [deleteTarget, deleteMutation]);
 
   const fields = [
-    { name: "residenteId", label: "Residente", type: "select" as const, options: residentes.filter(r => r.activo).map(r => ({ label: `${r.nombres} ${r.apellidos}`, value: r.id })) },
+    { name: "personaId", label: "Residente", type: "select" as const, options: residentes.filter(r => r.activo).map(r => ({ label: `${r.nombres} ${r.apellidos}`, value: r.id })) },
     { name: "motivo", label: "Motivo", type: "select" as const, options: Object.entries(motivoLabels).map(([k, v]) => ({ label: v, value: k })) },
-    { name: "descripcion", label: "Descripción", type: "textarea" as const, placeholder: "Describe la infracción..." },
+    { name: "descripcion", label: "Descripcion", type: "textarea" as const, placeholder: "Describe la infraccion..." },
     { name: "monto", label: "Monto (S/)", type: "number" as const },
-    { name: "fechaEmision", label: "Fecha de emisión", type: "text" as const, placeholder: "2026-05-01" },
+    { name: "fechaEmision", label: "Fecha de emision", type: "text" as const, placeholder: "2026-05-01" },
     { name: "fechaVencimiento", label: "Fecha de vencimiento", type: "text" as const, placeholder: "2026-06-01" },
-    { name: "aplicadaPor", label: "Aplicada por", type: "text" as const, placeholder: "Administración" },
+    { name: "aplicadoPor", label: "Aplicada por", type: "text" as const, placeholder: "Administracion" },
     { name: "estado", label: "Estado", type: "select" as const, options: ["Pendiente", "Pagada", "Anulada", "Vencida"].map(s => ({ label: s, value: s })) },
   ];
 
@@ -158,7 +174,7 @@ export default function MultasPage() {
                 <th className="px-5 py-3">Residente</th>
                 <th className="px-5 py-3">Motivo</th>
                 <th className="px-5 py-3 text-right">Monto</th>
-                <th className="px-5 py-3">Emisión</th>
+                <th className="px-5 py-3">Emision</th>
                 <th className="px-5 py-3">Vencimiento</th>
                 <th className="px-5 py-3">Estado</th>
                 <th className="px-5 py-3 text-right">Acciones</th>
@@ -168,8 +184,8 @@ export default function MultasPage() {
               {filtered.map((m) => (
                 <tr key={m.id} className="border-b border-surface-50 hover:bg-surface-50 transition-colors">
                   <td className="px-5 py-3">
-                    <p className="text-sm font-medium text-surface-800">{m.residenteNombre}</p>
-                    <p className="text-xs text-surface-400">{m.inmuebleLabel}</p>
+                    <p className="text-sm font-medium text-surface-800">{getResidenteNombre(m)}</p>
+                    <p className="text-xs text-surface-400">{getInmuebleLabel(m)}</p>
                   </td>
                   <td className="px-5 py-3">
                     <span className="text-sm text-surface-600">{motivoLabels[m.motivo]}</span>
@@ -239,7 +255,7 @@ export default function MultasPage() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Eliminar multa"
-        message={`¿Estás seguro de eliminar la multa de "${deleteTarget?.residenteNombre}"?`}
+        message={`Estas seguro de eliminar la multa de "${deleteTarget ? getResidenteNombre(deleteTarget) : ""}"?`}
         confirmLabel="Eliminar"
         variant="danger"
       />
