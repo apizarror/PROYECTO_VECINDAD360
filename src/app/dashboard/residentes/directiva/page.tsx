@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { UserRoundCog, Plus, Trash2, Crown } from "lucide-react";
+import { UserRoundCog, Plus, Trash2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
@@ -13,9 +13,9 @@ import { z } from "zod";
 import type { MiembroDirectiva } from "@/types";
 
 const directivaSchema = z.object({
-  id: z.string().min(1),
+  id: z.string().optional(),
   residenteId: z.string().min(1, "Selecciona un residente"),
-  residenteNombre: z.string(),
+  residenteNombre: z.string().optional(),
   cargo: z.enum(["Presidente", "Vicepresidente", "Tesorero", "Secretario", "Vocal"]),
   fechaInicio: z.string().min(1, "Requerido"),
   fechaFin: z.string().min(1, "Requerido"),
@@ -44,7 +44,7 @@ export default function DirectivaPage() {
       const item: MiembroDirectiva = {
         id,
         residenteId: data.residenteId as string,
-        residenteNombre: data.residenteNombre as string || residente?.nombres + " " + residente?.apellidos || "",
+        residenteNombre: (data.residenteNombre as string) || (residente ? `${residente.nombres} ${residente.apellidos}` : ""),
         cargo: data.cargo as MiembroDirectiva["cargo"],
         fechaInicio: data.fechaInicio as string,
         fechaFin: data.fechaFin as string,

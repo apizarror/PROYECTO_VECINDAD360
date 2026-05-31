@@ -44,10 +44,12 @@ export async function POST(request: Request) {
 
     // Try Supabase first
     let saved = false;
-    try {
-      const { error } = await supabase.from("subscribers").insert({ email });
-      if (!error) saved = true;
-    } catch {}
+    if (supabase) {
+      try {
+        const { error } = await supabase.from("subscribers").insert({ email });
+        if (!error) saved = true;
+      } catch {}
+    }
 
     // Fallback: save to local file
     if (!saved) {

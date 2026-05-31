@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Users,
   Building2,
+  Home,
   BriefcaseBusiness,
   DollarSign,
   Wrench,
@@ -25,6 +26,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/use-auth";
 
 interface SubMenuItem {
   label: string;
@@ -67,10 +69,9 @@ const menuGroups: MenuGroup[] = [
       },
       {
         label: "Inmobiliaria",
-        icon: Building2,
+        icon: Home,
         submenu: [
           { label: "Lista de Inmuebles", href: "/dashboard/inmobiliaria" },
-          { label: "Lectura de Servicios", href: "/dashboard/inmobiliaria/lectura" },
         ],
       },
       {
@@ -121,7 +122,7 @@ const menuGroups: MenuGroup[] = [
     ],
   },
   {
-    header: "Documents",
+    header: "Documentos",
     items: [
       { label: "Archivos Compartidos", icon: FolderOpen, href: "/dashboard/archivos" },
       { label: "Reportes", icon: BarChart3, href: "/dashboard/reportes" },
@@ -130,7 +131,6 @@ const menuGroups: MenuGroup[] = [
   },
 ];
 
-import { useAuth } from "@/hooks/use-auth";
 
 export function Sidebar({
   collapsed,
@@ -170,6 +170,7 @@ export function Sidebar({
   };
 
   const isItemActive = (item: MenuItem) => {
+    if (item.href === "/dashboard") return pathname === "/dashboard";
     if (item.href) return pathname === item.href || pathname.startsWith(item.href + "/");
     if (item.submenu) return item.submenu.some((sub) => pathname === sub.href || pathname.startsWith(sub.href + "/"));
     return false;

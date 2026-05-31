@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Building2, Plus, Edit, Trash2, Users, Clock, Shield, DollarSign } from "lucide-react";
+import { Building2, Plus, Trash2, Users, Clock, Shield, DollarSign } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
@@ -13,7 +13,7 @@ import { z } from "zod";
 import type { AreaComun } from "@/types";
 
 const schema = z.object({
-  id: z.string().min(1),
+  id: z.string().optional(),
   nombre: z.string().min(2),
   descripcion: z.string().min(5),
   costoPorHora: z.number().min(0),

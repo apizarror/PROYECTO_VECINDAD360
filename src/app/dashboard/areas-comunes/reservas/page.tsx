@@ -14,19 +14,19 @@ import { z } from "zod";
 import type { Reserva } from "@/types";
 
 const schema = z.object({
-  id: z.string().min(1),
+  id: z.string().optional(),
   areaComunId: z.string().min(1),
-  areaComunNombre: z.string(),
+  areaComunNombre: z.string().optional(),
   residenteId: z.string().min(1),
-  residenteNombre: z.string(),
-  inmuebleId: z.string(),
-  inmuebleLabel: z.string(),
+  residenteNombre: z.string().optional(),
+  inmuebleId: z.string().optional(),
+  inmuebleLabel: z.string().optional(),
   fecha: z.string().min(1),
   horaInicio: z.string().min(1),
   horaFin: z.string().min(1),
   costoTotal: z.number().min(0),
   estado: z.enum(["Solicitada", "Confirmada", "Pagada", "Cancelada", "Realizada"]),
-  observaciones: z.string(),
+  observaciones: z.string().optional(),
 });
 
 export default function ReservasPage() {
@@ -47,9 +47,8 @@ export default function ReservasPage() {
     const id = (data.id as string) || crypto.randomUUID();
     const area = areasComunes.find(a => a.id === data.areaComunId);
     const residente = residentes.find(r => r.id === data.residenteId);
-    const { id: _id, ...rest } = data;
     const item: Reserva = {
-      ...rest as unknown as Reserva,
+      ...data as unknown as Reserva,
       id,
       areaComunNombre: area?.nombre || "",
       residenteNombre: residente ? `${residente.nombres} ${residente.apellidos}` : "",

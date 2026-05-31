@@ -13,7 +13,7 @@ import { z } from "zod";
 import type { TareaProgramada } from "@/types";
 
 const schema = z.object({
-  id: z.string().min(1),
+  id: z.string().optional(),
   titulo: z.string().min(3),
   descripcion: z.string().min(5),
   asignadaA: z.string().min(1),
@@ -45,8 +45,7 @@ export default function TareasPage() {
   const handleSubmit = useCallback(
     (data: Record<string, unknown>) => {
       const id = (data.id as string) || crypto.randomUUID();
-      const { id: _id, ...rest } = data;
-      const item: TareaProgramada = { ...rest, id } as unknown as TareaProgramada;
+      const item: TareaProgramada = { ...data, id } as unknown as TareaProgramada;
       if (form?.mode === "edit") store.update(id, item);
       else store.create(item);
       setForm(null);

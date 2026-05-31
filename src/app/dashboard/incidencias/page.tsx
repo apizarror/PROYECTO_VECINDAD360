@@ -13,7 +13,7 @@ import { z } from "zod";
 import type { Incidencia } from "@/types";
 
 const schema = z.object({
-  id: z.string().min(1),
+  id: z.string().optional(),
   titulo: z.string().min(3),
   descripcion: z.string().min(5),
   ubicacion: z.string().min(2),
@@ -58,8 +58,7 @@ export default function IncidenciasPage() {
   const handleSubmit = useCallback(
     (data: Record<string, unknown>) => {
       const id = (data.id as string) || crypto.randomUUID();
-      const { id: _id, ...rest } = data;
-      const item: Incidencia = { ...rest, id } as unknown as Incidencia;
+      const item: Incidencia = { ...data, id } as unknown as Incidencia;
       if (form?.mode === "edit") store.update(id, item);
       else store.create(item);
       setForm(null);

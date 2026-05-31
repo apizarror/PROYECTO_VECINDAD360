@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import Link from "next/link";
 import { motion, useInView } from "framer-motion";
-import { ArrowRight, CheckCircle } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HeroCarousel } from "@/components/landing/hero-carousel";
 import { HeroStats } from "@/components/landing/hero-stats";
@@ -11,22 +11,14 @@ import { CondoModerno } from "@/components/illustrations/condo-moderno";
 import { CondoComunidad } from "@/components/illustrations/condo-comunidad";
 import { CondoAmenidades } from "@/components/illustrations/condo-amenidades";
 
-const stagger = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.15, delayChildren: 0.2 },
-  },
-};
-
 const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
-} as const;
-
-const fadeIn = {
-  hidden: { opacity: 0, scale: 0.9 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.7 } },
-} as const;
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, delay: i * 0.1, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
+  }),
+};
 
 const carouselSlides = [
   { component: CondoModerno, alt: "Condominio moderno con fachada de vidrio" },
@@ -36,77 +28,91 @@ const carouselSlides = [
 
 export function Hero() {
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-100px" });
+  const inView = useInView(ref, { once: true, margin: "-50px" });
 
   return (
     <section
       ref={ref}
-      className="relative overflow-hidden min-h-[600px] flex items-center"
+      className="relative overflow-hidden min-h-[620px] flex items-center"
     >
-      <HeroCarousel slides={carouselSlides} interval={5000} />
+      <HeroCarousel slides={carouselSlides} interval={6000} />
 
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-20">
-        <div className="absolute rounded-full w-20 h-20 bg-white/5 -top-10 -left-10" />
-        <div className="absolute rounded-full w-40 h-40 bg-white/5 top-1/3 -right-20" />
-        <div className="absolute rounded-full w-60 h-60 bg-white/[0.03] -bottom-20 left-1/3" />
-      </div>
-
-      <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-28">
-        <motion.div
-          initial="hidden"
-          animate={inView ? "visible" : "hidden"}
-          variants={stagger}
-          className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16"
-        >
-          <div className="flex-1 space-y-7 text-center lg:text-left">
-            <motion.div variants={fadeUp} className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 text-sm text-white/80 border border-white/10">
-              <CheckCircle className="h-4 w-4 text-accent-400" />
-              Pagos con Yape, Plin y más
-            </motion.div>
+      <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 py-20 md:py-32">
+        <div className="flex flex-col lg:flex-row items-center gap-14 lg:gap-20">
+          <div className="flex-1 space-y-6 text-center lg:text-left">
+            <motion.p
+              custom={0}
+              initial="hidden"
+              animate={inView ? "visible" : "hidden"}
+              variants={fadeUp}
+              className="text-sm font-medium tracking-wide uppercase text-accent-300 letter-spacing-[0.1em]"
+            >
+              Gestión de condominios en Perú
+            </motion.p>
 
             <motion.h1
+              custom={1}
+              initial="hidden"
+              animate={inView ? "visible" : "hidden"}
               variants={fadeUp}
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-tight"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-bold text-white leading-[1.1] tracking-tight"
             >
-              Administra tu condominio{" "}
-              <span className="text-accent-400">sin estrés</span>
+              Tu condominio,
+              <br />
+              bajo control <span className="text-accent-400">real</span>
             </motion.h1>
 
             <motion.p
+              custom={2}
+              initial="hidden"
+              animate={inView ? "visible" : "hidden"}
               variants={fadeUp}
-              className="text-base md:text-lg text-white/70 max-w-xl mx-auto lg:mx-0"
+              className="text-base md:text-lg text-white/65 max-w-lg mx-auto lg:mx-0 leading-relaxed"
             >
-              La plataforma integral que conecta administradores, residentes y
-              proveedores. Tus vecinos pagan con Yape, Plin o tarjeta. Tú
-              tienes el control al toque y sin roche.
+              Cobranzas con Yape y Plin, reportes claros, comunicación directa
+              con tus vecinos. Todo desde un solo lugar.
             </motion.p>
 
             <motion.div
+              custom={3}
+              initial="hidden"
+              animate={inView ? "visible" : "hidden"}
               variants={fadeUp}
-              className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start"
+              className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start pt-2"
             >
               <Link href="/auth">
                 <Button variant="accent" size="lg">
-                  Comenzar Gratis
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  Probar gratis
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
               <Link href="/demo">
                 <Button variant="outline-white" size="lg">
-                  Ver Demo
+                  Ver demo
                 </Button>
               </Link>
             </motion.div>
 
-            <motion.p variants={fadeUp} className="text-sm text-white/50">
-              Sin tarjeta de crédito · Configuración al toque · Soporte 24/7
+            <motion.p
+              custom={4}
+              initial="hidden"
+              animate={inView ? "visible" : "hidden"}
+              variants={fadeUp}
+              className="text-xs text-white/40 tracking-wide"
+            >
+              Sin tarjeta de crédito &middot; Listo en 5 minutos
             </motion.p>
           </div>
 
-          <motion.div variants={fadeIn} className="flex-1 flex justify-center items-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={inView ? { opacity: 1, scale: 1 } : {}}
+            transition={{ duration: 0.6, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="flex-1 flex justify-center items-center"
+          >
             <HeroStats />
           </motion.div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

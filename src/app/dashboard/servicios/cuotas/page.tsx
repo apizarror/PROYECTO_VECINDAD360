@@ -12,7 +12,7 @@ import { z } from "zod";
 import type { CuotaMantenimiento } from "@/types";
 
 const cuotaSchema = z.object({
-  id: z.string().min(1),
+  id: z.string().optional(),
   periodo: z.string().min(1, "Requerido"),
   tipo: z.enum(["Ordinaria", "Extraordinaria"]),
   montoBase: z.number().min(1, "Mínimo S/ 1"),
@@ -133,7 +133,7 @@ export default function CuotasPage() {
                         <p className={cn("text-sm font-semibold", cuota.totalCobrado === cuota.totalEmitido ? "text-green-600" : "text-surface-600")}>
                           S/ {cuota.totalCobrado.toLocaleString()}
                           <span className="text-xs text-surface-400 ml-1">
-                            ({Math.round((cuota.totalCobrado / cuota.totalEmitido) * 100) || 0}%)
+                            ({cuota.totalEmitido > 0 ? Math.round((cuota.totalCobrado / cuota.totalEmitido) * 100) : 0}%)
                           </span>
                         </p>
                       </div>

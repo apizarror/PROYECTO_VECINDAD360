@@ -17,7 +17,7 @@ export default function TerminosPage() {
             Términos y Condiciones
           </h1>
           <p className="text-white/70 mt-4 max-w-xl mx-auto text-lg">
-            Última actualización: {new Date().toLocaleDateString("es-PE", { year: "numeric", month: "long", day: "numeric" })}
+            Última actualización: 30 de mayo de 2026
           </p>
         </section>
 

@@ -44,16 +44,18 @@ export async function POST(request: Request) {
 
     // Try Supabase first
     let saved = false;
-    try {
-      const { error } = await supabase.from("contacts").insert({
-        name,
-        email,
-        condominio,
-        unidades,
-        mensaje,
-      });
-      if (!error) saved = true;
-    } catch {}
+    if (supabase) {
+      try {
+        const { error } = await supabase.from("contacts").insert({
+          name,
+          email,
+          condominio,
+          unidades,
+          mensaje,
+        });
+        if (!error) saved = true;
+      } catch {}
+    }
 
     // Fallback: save to local file
     if (!saved) {

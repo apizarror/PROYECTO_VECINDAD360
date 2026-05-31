@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { Bell, Menu, Moon, Sun, ChevronDown, LogOut, User, Settings } from "lucide-react";
+import { Bell, Menu, ChevronDown, LogOut, User, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 
@@ -61,16 +61,10 @@ export function Topbar({ collapsed, onToggleMobile }: { collapsed: boolean; onTo
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
-  const [dark, setDark] = useState(false);
   const [notifCount] = useState(3);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifs, setShowNotifs] = useState(false);
   const breadcrumbs = getBreadcrumbs(pathname);
-
-  const toggleDark = () => {
-    setDark(!dark);
-    document.documentElement.classList.toggle("dark");
-  };
 
   return (
     <header
@@ -157,15 +151,6 @@ export function Topbar({ collapsed, onToggleMobile }: { collapsed: boolean; onTo
             </>
           )}
         </div>
-
-        {/* Dark mode toggle */}
-        <button
-          onClick={toggleDark}
-          className="p-2.5 rounded-lg text-surface-400 hover:text-surface-600 hover:bg-surface-50 transition-colors"
-          aria-label="Cambiar tema"
-        >
-          {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-        </button>
 
         {/* User avatar */}
         <div className="relative ml-1">

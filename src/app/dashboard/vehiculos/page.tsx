@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Car, Plus, Edit, Trash2, User, MapPin, Ticket } from "lucide-react";
+import { Car, Plus, Trash2, User, MapPin, Ticket } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
@@ -14,7 +14,7 @@ import { z } from "zod";
 import type { Vehiculo } from "@/types";
 
 const schema = z.object({
-  id: z.string().min(1),
+  id: z.string().optional(),
   placa: z.string().min(3),
   marca: z.string().min(2),
   modelo: z.string().min(1),
@@ -22,11 +22,11 @@ const schema = z.object({
   ano: z.number().min(2000),
   tipo: z.enum(["Auto", "Moto", "Bicicleta"]),
   residenteId: z.string().min(1),
-  residenteNombre: z.string(),
-  inmuebleId: z.string(),
-  inmuebleLabel: z.string(),
+  residenteNombre: z.string().optional(),
+  inmuebleId: z.string().optional(),
+  inmuebleLabel: z.string().optional(),
   espacioEstacionamiento: z.string().min(1),
-  sticker: z.string(),
+  sticker: z.string().optional(),
   estado: z.enum(["Activo", "Inactivo"]),
 });
 
@@ -40,9 +40,8 @@ export default function VehiculosPage() {
   const handleSubmit = useCallback((data: Record<string, unknown>) => {
     const id = (data.id as string) || crypto.randomUUID();
     const res = residentes.find(r => r.id === data.residenteId);
-    const { id: _id, ...rest } = data;
     const item: Vehiculo = {
-      ...rest as unknown as Vehiculo, id,
+      ...data as unknown as Vehiculo, id,
       residenteNombre: res ? `${res.nombres} ${res.apellidos}` : "",
       inmuebleLabel: res?.vinculaciones[0]?.inmuebleLabel || "",
     };

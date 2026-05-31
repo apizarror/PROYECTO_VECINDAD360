@@ -13,11 +13,11 @@ import { z } from "zod";
 import type { Multa } from "@/types";
 
 const multaSchema = z.object({
-  id: z.string().min(1),
+  id: z.string().optional(),
   residenteId: z.string().min(1, "Selecciona un residente"),
-  residenteNombre: z.string(),
-  inmuebleId: z.string().min(1, "Selecciona un inmueble"),
-  inmuebleLabel: z.string(),
+  residenteNombre: z.string().optional(),
+  inmuebleId: z.string().optional(),
+  inmuebleLabel: z.string().optional(),
   motivo: z.enum(["ruido", "mascota", "basura", "area_comun", "estacionamiento", "otro"]),
   descripcion: z.string().min(10, "Mínimo 10 caracteres"),
   monto: z.number().min(1, "Mínimo S/ 1"),
@@ -64,9 +64,9 @@ export default function MultasPage() {
       const item: Multa = {
         id,
         residenteId: data.residenteId as string,
-        residenteNombre: data.residenteNombre as string || residente?.nombres + " " + residente?.apellidos || "",
-        inmuebleId: data.inmuebleId as string,
-        inmuebleLabel: data.inmuebleLabel as string,
+        residenteNombre: (data.residenteNombre as string) || (residente ? `${residente.nombres} ${residente.apellidos}` : ""),
+        inmuebleId: (data.inmuebleId as string) || residente?.vinculaciones[0]?.inmuebleId || "",
+        inmuebleLabel: (data.inmuebleLabel as string) || residente?.vinculaciones[0]?.inmuebleLabel || "",
         motivo: data.motivo as Multa["motivo"],
         descripcion: data.descripcion as string,
         monto: data.monto as number,

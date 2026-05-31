@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { Users, Plus, Search, Trash2, Edit, Download, Upload, Eye, X } from "lucide-react";
+import { Users, Plus, Search, Trash2, Edit, Download, Upload, X } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
@@ -13,7 +13,7 @@ import { z } from "zod";
 import type { Persona } from "@/types";
 
 const residenteSchema = z.object({
-  id: z.string().min(1),
+  id: z.string().optional(),
   tipo: z.enum(["Natural", "Jurídica"]),
   documento: z.string().min(8, "Mínimo 8 caracteres"),
   nombres: z.string().min(2, "Mínimo 2 caracteres"),
@@ -26,15 +26,6 @@ const residenteSchema = z.object({
   saldo: z.number().default(0),
   activo: z.boolean().default(true),
 });
-
-const motivoLabels: Record<string, string> = {
-  ruido: "Ruido",
-  mascota: "Mascota",
-  basura: "Basura",
-  area_comun: "Área Común",
-  estacionamiento: "Estacionamiento",
-  otro: "Otro",
-};
 
 const fields = [
   { name: "tipo", label: "Tipo de persona", type: "select" as const, options: [{ label: "Natural", value: "Natural" }, { label: "Jurídica", value: "Jurídica" }] },

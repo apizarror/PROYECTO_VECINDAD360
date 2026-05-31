@@ -108,10 +108,12 @@ export default function AuthPage() {
             </Button>
           </form>
 
-          <p className="text-center text-xs text-surface-400 mt-6">
-            Usuario de prueba: <span className="font-mono text-surface-600">admin</span> /{" "}
-            <span className="font-mono text-surface-600">admin123</span>
-          </p>
+          {process.env.NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS === "true" && (
+            <p className="text-center text-xs text-surface-400 mt-6">
+              Usuario de prueba: <span className="font-mono text-surface-600">admin</span> /{" "}
+              <span className="font-mono text-surface-600">admin123</span>
+            </p>
+          )}
         </div>
       </section>
     </main>

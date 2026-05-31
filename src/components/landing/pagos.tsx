@@ -24,8 +24,8 @@ const paymentFeatures = [
   },
   {
     icon: Smartphone,
-    title: "PSE y transferencias",
-    description: "Débito inmediato desde cualquier banco. Conciliación automática sin intervención manual.",
+    title: "Transferencias bancarias",
+    description: "Transferencias desde cualquier banco peruano. Conciliación automática sin intervención manual.",
     color: "bg-green-500",
   },
   {

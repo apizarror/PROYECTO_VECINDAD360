@@ -7,13 +7,10 @@ const footerLinks = {
     { label: "Demo", href: "/demo" },
   ],
   recursos: [
-    { label: "Blog", href: "/blog" },
-    { label: "Ayuda", href: "/ayuda" },
     { label: "Contacto", href: "/contacto" },
   ],
   legal: [
     { label: "Términos y condiciones", href: "/terminos" },
-    { label: "Privacidad", href: "/privacidad" },
   ],
 };
 

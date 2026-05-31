@@ -29,19 +29,14 @@ export default function DashboardLayout({
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (mounted && !isAuthenticated) {
+    if (!isAuthenticated) {
       router.replace("/auth");
     }
-  }, [mounted, isAuthenticated, router]);
+  }, [isAuthenticated, router]);
 
-  if (!mounted || !isAuthenticated) {
+  if (!isAuthenticated) {
     return <LoadingScreen />;
   }
 

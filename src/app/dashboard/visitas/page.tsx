@@ -14,18 +14,18 @@ import { z } from "zod";
 import type { Visita } from "@/types";
 
 const schema = z.object({
-  id: z.string().min(1),
+  id: z.string().optional(),
   visitanteDni: z.string().min(8),
   visitanteNombre: z.string().min(3),
-  inmuebleId: z.string(),
-  inmuebleLabel: z.string(),
+  inmuebleId: z.string().optional(),
+  inmuebleLabel: z.string().optional(),
   residenteId: z.string().min(1),
-  residenteNombre: z.string(),
+  residenteNombre: z.string().optional(),
   motivo: z.string().min(2),
   fechaHoraIngreso: z.string().min(1),
   fechaHoraSalida: z.string().optional(),
   estado: z.enum(["Activa", "Programada", "Completada", "Rechazada"]),
-  qrGenerado: z.string(),
+  qrGenerado: z.string().optional(),
   vehiculoPlaca: z.string().optional(),
 });
 
@@ -53,9 +53,8 @@ export default function VisitasPage() {
   const handleSubmit = useCallback((data: Record<string, unknown>) => {
     const id = (data.id as string) || crypto.randomUUID();
     const res = residentes.find(r => r.id === data.residenteId);
-    const { id: _id, ...rest } = data;
     const item: Visita = {
-      ...rest as unknown as Visita, id,
+      ...data as unknown as Visita, id,
       residenteNombre: res ? `${res.nombres} ${res.apellidos}` : "",
       inmuebleLabel: res?.vinculaciones[0]?.inmuebleLabel || "",
       qrGenerado: `QR-${Date.now().toString(36).toUpperCase()}`,

@@ -6,8 +6,8 @@ import { Building2, Users, ThumbsUp, Zap } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 const statItems = [
-  { icon: Building2, value: 500, suffix: "+", label: "Vecindades activas", color: "text-accent-400" },
-  { icon: Users, value: 12000, suffix: "+", label: "Residentes", color: "text-primary-400" },
+  { icon: Building2, value: 120, suffix: "+", label: "Condominios activos", color: "text-accent-400" },
+  { icon: Users, value: 4500, suffix: "+", label: "Residentes", color: "text-primary-400" },
   { icon: ThumbsUp, value: 98, suffix: "%", label: "Satisfacción", color: "text-green-400" },
   { icon: Zap, value: 5, suffix: " min", label: "Configuración", color: "text-amber-400" },
 ];

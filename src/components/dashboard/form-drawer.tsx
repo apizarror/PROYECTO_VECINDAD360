@@ -41,18 +41,19 @@ export function FormDrawer<S extends ZodSchema>({
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<any>({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } = useForm<Record<string, any>>({
     resolver: zodResolver(schema as never),
-    defaultValues,
+    defaultValues: defaultValues as Record<string, unknown> | undefined,
   });
 
   useEffect(() => {
     if (open) {
-      reset(defaultValues);
+      reset(defaultValues as Record<string, unknown> | undefined);
     }
   }, [open, defaultValues, reset]);
 
-  const onFormSubmit = (data: any) => {
+  const onFormSubmit = (data: Record<string, unknown>) => {
     onSubmit(data as z.infer<S>);
     onClose();
   };
@@ -96,7 +97,7 @@ export function FormDrawer<S extends ZodSchema>({
                   </label>
                   {field.type === "select" ? (
                     <select
-                      {...register(field.name as any)}
+                      {...register(field.name)}
                       className="w-full rounded-xl border border-surface-200 px-3 py-3 text-sm text-surface-800 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors"
                     >
                       <option value="">Seleccionar...</option>
@@ -108,7 +109,7 @@ export function FormDrawer<S extends ZodSchema>({
                     </select>
                   ) : field.type === "textarea" ? (
                     <textarea
-                      {...register(field.name as any)}
+                      {...register(field.name)}
                       placeholder={field.placeholder}
                       rows={3}
                       className="w-full rounded-xl border border-surface-200 px-3 py-3 text-sm text-surface-800 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors resize-none"
@@ -116,7 +117,7 @@ export function FormDrawer<S extends ZodSchema>({
                   ) : (
                     <input
                       type={field.type}
-                      {...register(field.name as any, {
+                      {...register(field.name, {
                         valueAsNumber: field.type === "number",
                       })}
                       placeholder={field.placeholder}

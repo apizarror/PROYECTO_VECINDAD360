@@ -10,7 +10,7 @@ import type { PricingTier } from "@/types";
 const tiers: PricingTier[] = [
   {
     name: "Básico",
-    price: "$29",
+    price: "S/ 99",
     period: "/mes",
     description: "Perfecto para condominios pequeños que empiezan a organizarse.",
     features: [
@@ -26,7 +26,7 @@ const tiers: PricingTier[] = [
   },
   {
     name: "Pro",
-    price: "$79",
+    price: "S/ 269",
     period: "/mes",
     description: "El plan más popular. Ideal para condominios medianos con necesidades completas.",
     features: [
@@ -45,14 +45,14 @@ const tiers: PricingTier[] = [
   },
   {
     name: "Empresarial",
-    price: "$199",
+    price: "S/ 679",
     period: "/mes",
     description: "Para administradoras profesionales con múltiples condominios a cargo.",
     features: [
       "Unidades ilimitadas",
       "Múltiples condominios",
       "Integración WhatsApp completa",
-      "Todos los medios de pago (Yape, Plin, PSE, tarjeta)",
+      "Todos los medios de pago (Yape, Plin, transferencia, tarjeta)",
       "Reconciliación automática avanzada",
       "Votación digital",
       "Firma electrónica de documentos",

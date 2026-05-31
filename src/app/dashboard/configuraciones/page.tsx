@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Settings, Plus, Edit, Trash2, Building2, Layers, ChevronRight } from "lucide-react";
+import { Settings, Plus, Edit, Trash2, Building2, Layers } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
@@ -19,13 +19,13 @@ import type { GrupoRubro, ServicioRubro, ConfiguracionCondominio } from "@/types
 type Tab = "rubros" | "condominio";
 
 const grupoSchema = z.object({
-  id: z.string().min(1),
+  id: z.string().optional(),
   nombre: z.string().min(2, "Mínimo 2 caracteres"),
   orden: z.number().min(1),
 });
 
 const servicioSchema = z.object({
-  id: z.string().min(1),
+  id: z.string().optional(),
   grupoId: z.string().min(1, "Selecciona un grupo"),
   grupoNombre: z.string(),
   nombre: z.string().min(2, "Mínimo 2 caracteres"),

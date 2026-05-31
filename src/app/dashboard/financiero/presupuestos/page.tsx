@@ -17,7 +17,7 @@ export default function PresupuestosPage() {
           <p className="text-[10px] text-surface-400 uppercase">Total presupuestado</p>
           <p className="text-lg font-extrabold text-surface-800">S/ {totalPresupuestado.toLocaleString()}</p>
           <p className="text-xs text-surface-500">
-            Ejecutado: S/ {totalEjecutado.toLocaleString()} ({Math.round((totalEjecutado / totalPresupuestado) * 100)}%)
+            Ejecutado: S/ {totalEjecutado.toLocaleString()} ({totalPresupuestado > 0 ? Math.round((totalEjecutado / totalPresupuestado) * 100) : 0}%)
           </p>
         </div>
       </HeaderPage>

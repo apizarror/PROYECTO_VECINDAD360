@@ -13,16 +13,16 @@ import { z } from "zod";
 import type { Egreso } from "@/types";
 
 const schema = z.object({
-  id: z.string().min(1),
+  id: z.string().optional(),
   concepto: z.string().min(3),
   monto: z.number().min(1),
   categoria: z.string().min(1),
   proveedor: z.string().min(1),
   cuentaBancariaId: z.string().min(1),
-  cuentaBancariaNombre: z.string(),
+  cuentaBancariaNombre: z.string().optional(),
   metodoPago: z.enum(["Efectivo", "Transferencia", "Yape", "Plin", "Cheque"]),
   fechaRegistro: z.string().min(1),
-  fechaPago: z.string(),
+  fechaPago: z.string().optional(),
   descripcion: z.string().min(5),
   estado: z.enum(["Pendiente", "Pagado", "Anulado"]),
   registradoPor: z.string().min(1),

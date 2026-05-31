@@ -1,7 +1,5 @@
 "use client";
 
-import { useRef } from "react";
-import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -58,7 +56,6 @@ export function ConfirmDialog({
                 <button
                   onClick={() => {
                     onConfirm();
-                    onClose();
                   }}
                   className={cn(
                     "px-4 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors",

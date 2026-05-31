@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Radio, Plus, Edit, Trash2 } from "lucide-react";
+import { Radio, Plus, Trash2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
@@ -13,7 +13,7 @@ import { z } from "zod";
 import type { Dispositivo } from "@/types";
 
 const schema = z.object({
-  id: z.string().min(1),
+  id: z.string().optional(),
   tipo: z.string().min(2),
   marca: z.string().min(1),
   modelo: z.string().min(1),
@@ -33,9 +33,8 @@ export default function DispositivosPage() {
     (data: Record<string, unknown>) => {
       const id = (data.id as string) || crypto.randomUUID();
       const emp = empleados.find((e) => e.id === data.empleadoAsignadoId);
-      const { id: _id, ...rest } = data;
       const item: Dispositivo = {
-        ...rest,
+        ...data,
         id,
         empleadoAsignadoNombre: emp ? `${emp.nombres} ${emp.apellidos}` : "",
       } as unknown as Dispositivo;

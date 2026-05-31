@@ -13,7 +13,7 @@ import { z } from "zod";
 import type { Empleado } from "@/types";
 
 const schema = z.object({
-  id: z.string().min(1),
+  id: z.string().optional(),
   dni: z.string().min(8),
   nombres: z.string().min(2),
   apellidos: z.string().min(2),
@@ -52,9 +52,7 @@ export default function EmpleadosPage() {
   const handleSubmit = useCallback(
     (data: Record<string, unknown>) => {
       const id = (data.id as string) || crypto.randomUUID();
-      const { id: _id, ...rest } = data;
-      const item: Empleado = { ...rest } as unknown as Empleado;
-      item.id = id;
+      const item: Empleado = { ...data, id } as unknown as Empleado;
       if (form?.mode === "edit") store.update(id, item);
       else store.create(item);
       setForm(null);

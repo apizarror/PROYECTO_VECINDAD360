@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const edificioSchema = z.object({
-  id: z.string().min(1),
+  id: z.string().optional(),
   nombre: z.string().min(2, "Mínimo 2 caracteres"),
   direccion: z.string().min(5, "Mínimo 5 caracteres"),
   bloques: z.number().min(0),
@@ -11,19 +11,19 @@ export const edificioSchema = z.object({
 });
 
 export const bloqueSchema = z.object({
-  id: z.string().min(1),
+  id: z.string().optional(),
   edificioId: z.string().min(1, "Selecciona un edificio"),
   nombre: z.string().min(1, "Requerido"),
   pisos: z.number().min(1, "Mínimo 1 piso"),
   inmuebles: z.number().min(1, "Mínimo 1 inmueble"),
-  edificioNombre: z.string(),
+  edificioNombre: z.string().optional(),
 });
 
 export const inmuebleSchema = z.object({
-  id: z.string().min(1),
+  id: z.string().optional(),
   bloqueId: z.string().min(1, "Selecciona un bloque"),
-  bloqueNombre: z.string(),
-  edificioNombre: z.string(),
+  bloqueNombre: z.string().optional(),
+  edificioNombre: z.string().optional(),
   numero: z.string().min(1, "Requerido"),
   piso: z.number().min(0),
   area: z.number().min(10, "Mínimo 10 m²"),

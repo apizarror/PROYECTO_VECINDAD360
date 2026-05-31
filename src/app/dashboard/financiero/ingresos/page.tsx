@@ -13,14 +13,14 @@ import { z } from "zod";
 import type { Ingreso } from "@/types";
 
 const schema = z.object({
-  id: z.string().min(1),
+  id: z.string().optional(),
   concepto: z.string().min(3),
   monto: z.number().min(1),
   origen: z.enum(["Cuota", "Multa", "Reserva", "Donación", "Otro"]),
   residenteId: z.string().optional(),
   residenteNombre: z.string().optional(),
   cuentaBancariaId: z.string().min(1),
-  cuentaBancariaNombre: z.string(),
+  cuentaBancariaNombre: z.string().optional(),
   metodoPago: z.enum(["Efectivo", "Transferencia", "Yape", "Plin", "Tarjeta"]),
   fecha: z.string().min(1),
   estado: z.enum(["Confirmado", "Pendiente", "Anulado"]),

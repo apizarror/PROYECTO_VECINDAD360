@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
 
 interface User {
   id: string;
@@ -48,16 +48,18 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window === "undefined") return null;
     const stored = localStorage.getItem("vecindad360_user");
     if (stored) {
       try {
-        setUser(JSON.parse(stored));
-      } catch {}
+        return JSON.parse(stored);
+      } catch {
+        localStorage.removeItem("vecindad360_user");
+      }
     }
-  }, []);
+    return null;
+  });
 
   const login = useCallback(async (username: string, password: string) => {
     const entry = USERS[username.toLowerCase()];

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { LayoutDashboard, TrendingUp, TrendingDown, AlertCircle, Users, DoorOpen } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { HeaderPage } from "@/components/dashboard/header-page";
@@ -128,9 +129,11 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 bg-white rounded-2xl border border-surface-200 shadow-sm">
           <div className="flex items-center justify-between p-5 border-b border-surface-100">
             <h3 className="font-bold text-surface-800">Top Morosos</h3>
-            <Button variant="ghost" size="sm">
-              Ver todos
-            </Button>
+            <Link href="/dashboard/residentes">
+              <Button variant="ghost" size="sm">
+                Ver todos
+              </Button>
+            </Link>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -160,9 +163,11 @@ export default function DashboardPage() {
         <div className="bg-white rounded-2xl border border-surface-200 shadow-sm">
           <div className="flex items-center justify-between p-5 border-b border-surface-100">
             <h3 className="font-bold text-surface-800">Próximas Reservas</h3>
-            <Button variant="ghost" size="sm">
-              Ver todas
-            </Button>
+            <Link href="/dashboard/areas-comunes/reservas">
+              <Button variant="ghost" size="sm">
+                Ver todas
+              </Button>
+            </Link>
           </div>
           <div className="p-5 space-y-4">
             {proximasReservas.map((r, i) => (

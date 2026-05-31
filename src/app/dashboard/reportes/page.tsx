@@ -1,5 +1,5 @@
 "use client";
-import { BarChart3, FileText, DollarSign, Users, CalendarDays, AlertTriangle, TrendingUp } from "lucide-react";
+import { BarChart3, DollarSign, Users, CalendarDays, AlertTriangle, TrendingUp } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 
 const reportes = [

@@ -1,42 +1,45 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
-  --color-primary-950: #172554;
+  /* Teal - Confianza, profesionalismo, real estate */
+  --color-primary-50: #f0fdfa;
+  --color-primary-100: #ccfbf1;
+  --color-primary-200: #99f6e4;
+  --color-primary-300: #5eead4;
+  --color-primary-400: #2dd4bf;
+  --color-primary-500: #14b8a6;
+  --color-primary-600: #0f766e;
+  --color-primary-700: #0d6560;
+  --color-primary-800: #115e59;
+  --color-primary-900: #134e4a;
+  --color-primary-950: #042f2e;
 
-  --color-accent-50: #fff7ed;
-  --color-accent-100: #ffedd5;
-  --color-accent-200: #fed7aa;
-  --color-accent-300: #fdba74;
-  --color-accent-400: #fb923c;
-  --color-accent-500: #f97316;
-  --color-accent-600: #ea580c;
-  --color-accent-700: #c2410c;
-  --color-accent-800: #9a3412;
-  --color-accent-900: #7c2d12;
+  /* Amber - Calidez, acción, Peru */
+  --color-accent-50: #fffbeb;
+  --color-accent-100: #fef3c7;
+  --color-accent-200: #fde68a;
+  --color-accent-300: #fcd34d;
+  --color-accent-400: #fbbf24;
+  --color-accent-500: #f59e0b;
+  --color-accent-600: #d97706;
+  --color-accent-700: #b45309;
+  --color-accent-800: #92400e;
+  --color-accent-900: #78350f;
 
-  --color-surface-50: #f8fafc;
-  --color-surface-100: #f1f5f9;
-  --color-surface-200: #e2e8f0;
-  --color-surface-300: #cbd5e1;
-  --color-surface-400: #94a3b8;
-  --color-surface-500: #64748b;
-  --color-surface-600: #475569;
-  --color-surface-700: #334155;
-  --color-surface-800: #1e293b;
-  --color-surface-900: #0f172a;
+  /* Surfaces - Cálidos, no grises puros */
+  --color-surface-50: #f8fafb;
+  --color-surface-100: #f1f4f6;
+  --color-surface-200: #e3e8ec;
+  --color-surface-300: #c9d1d8;
+  --color-surface-400: #8896a4;
+  --color-surface-500: #5f6f7e;
+  --color-surface-600: #445161;
+  --color-surface-700: #2f3c4a;
+  --color-surface-800: #1b2735;
+  --color-surface-900: #0e1825;
 
-  --font-sans: var(--font-inter);
-  --font-display: var(--font-inter);
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-dm-sans);
 }
 
 @layer base {
@@ -46,6 +49,14 @@
 
   body {
     @apply bg-surface-50 text-surface-800 antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Mejores selecciones de texto */
+  ::selection {
+    background-color: #ccfbf1;
+    color: #134e4a;
   }
 }
 
@@ -55,25 +66,25 @@
   }
 
   .glass {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
   }
 
   .gradient-primary {
-    background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-800));
+    background: linear-gradient(160deg, #115e59 0%, #0f766e 100%);
   }
 
   .gradient-hero {
-    background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%);
+    background: linear-gradient(160deg, #0e1825 0%, #134e4a 45%, #0f766e 100%);
   }
 
   .gradient-cta {
-    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #2563eb 100%);
+    background: linear-gradient(160deg, #134e4a 0%, #0f766e 50%, #115e59 100%);
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, var(--color-primary-600), var(--color-accent-500));
+    background: linear-gradient(135deg, #0f766e, #f59e0b);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;

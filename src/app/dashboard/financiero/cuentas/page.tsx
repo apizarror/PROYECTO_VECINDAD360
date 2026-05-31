@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { WalletCards, Plus, Edit, Trash2 } from "lucide-react";
+import { WalletCards, Plus, Trash2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
@@ -13,7 +13,7 @@ import { z } from "zod";
 import type { CuentaBancaria } from "@/types";
 
 const cuentaSchema = z.object({
-  id: z.string().min(1),
+  id: z.string().optional(),
   banco: z.string().min(2),
   tipo: z.enum(["Ahorros", "Corriente", "Detracción"]),
   moneda: z.enum(["PEN", "USD"]),
@@ -50,11 +50,16 @@ export default function CuentasPage() {
     { name: "estado", label: "Estado", type: "select" as const, options: [{ label: "Activa", value: "Activa" }, { label: "Inactiva", value: "Inactiva" }] },
   ];
 
-  const total = store.items.filter(c => c.estado === "Activa").reduce((s, c) => s + c.saldoActual, 0);
+  const activas = store.items.filter(c => c.estado === "Activa");
+  const totalPEN = activas.filter(c => c.moneda === "PEN").reduce((s, c) => s + c.saldoActual, 0);
+  const totalUSD = activas.filter(c => c.moneda === "USD").reduce((s, c) => s + c.saldoActual, 0);
+  const subtitulo = totalUSD > 0
+    ? `Total disponible: S/ ${totalPEN.toLocaleString()} · $ ${totalUSD.toLocaleString()}`
+    : `Total disponible: S/ ${totalPEN.toLocaleString()}`;
 
   return (
     <>
-      <HeaderPage icon={WalletCards} title="Cuentas Bancarias" subtitle={`Total disponible: S/ ${total.toLocaleString()}`}>
+      <HeaderPage icon={WalletCards} title="Cuentas Bancarias" subtitle={subtitulo}>
         <Button variant="accent" size="md" onClick={() => setForm({ mode: "create" })}>
           <Plus className="h-4 w-4 mr-1.5" /> Nueva Cuenta
         </Button>
