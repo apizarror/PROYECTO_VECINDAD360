@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Landmark, Plus, Send, Loader2 } from "lucide-react";
+import { Landmark, Plus, Send, Trash2, Loader2 } from "lucide-react";
 import { HeaderPage } from "@/components/dashboard/header-page";
 import { Button } from "@/components/ui/button";
 import { FormDrawer } from "@/components/dashboard/form-drawer";
-import { useApiList, useApiCreate, useApiUpdate } from "@/hooks/use-api";
+import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
+import { useApiList, useApiCreate, useApiUpdate, useApiDelete } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import type { CuotaMantenimiento } from "@/types";
@@ -29,7 +30,9 @@ export default function CuotasPage() {
   const { data: items = [], isLoading } = useApiList<CuotaMantenimiento>("cuotas");
   const createMutation = useApiCreate<CuotaMantenimiento>("cuotas");
   const updateMutation = useApiUpdate<CuotaMantenimiento>("cuotas");
+  const deleteMutation = useApiDelete("cuotas");
   const [form, setForm] = useState<{ mode: "create" | "edit"; item?: CuotaMantenimiento } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<CuotaMantenimiento | null>(null);
 
   const handleEmitir = useCallback(async (cuota: CuotaMantenimiento) => {
     await updateMutation.mutateAsync({ ...cuota, estado: "Emitida", inmueblesAplicados: 12, totalEmitido: cuota.montoBase * 12 });
@@ -163,6 +166,11 @@ export default function CuotasPage() {
                   <Button variant="ghost" size="sm" onClick={() => setForm({ mode: "edit", item: cuota })}>
                     Editar
                   </Button>
+                  {cuota.estado === "Borrador" && (
+                    <button onClick={() => setDeleteTarget(cuota)} className="p-1.5 rounded text-surface-400 hover:text-red-600 transition-colors">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -177,6 +185,13 @@ export default function CuotasPage() {
         defaultValues={form?.item || undefined}
         title={form?.mode === "create" ? "Nueva Cuota" : "Editar Cuota"}
         fields={fields}
+      />
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={async () => { if (deleteTarget) await deleteMutation.mutateAsync(deleteTarget.id); setDeleteTarget(null); }}
+        title="Eliminar cuota"
+        message={`¿Eliminar la cuota del periodo "${deleteTarget?.periodo}"?`}
       />
     </>
   );
