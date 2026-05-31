@@ -29,10 +29,9 @@ export default function PerfilPage() {
           </div>
           <div className="space-y-3">
             {[
-              ["Usuario", user.username],
+              ["Email", user.email],
               ["DNI", user.dni],
               ["Teléfono", user.telefono],
-              ["Fecha de ingreso", user.fechaIngreso],
               ["Rol", user.rol === "SUPER_ADMIN" ? "SUPER_ADMIN — Control total del sistema" : user.rol],
             ].map(([l, v]) => (
               <div key={l} className="flex justify-between py-2 border-b border-surface-50 text-sm">
