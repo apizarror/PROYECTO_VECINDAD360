@@ -157,7 +157,7 @@ export default function MovimientoVehicularPage() {
         onClose={() => setForm(null)}
         onSubmit={handleSubmit}
         schema={schema}
-        defaultValues={{ fechaHora: defaultFechaHora, esVisitante: "No", tipoMovimiento: "Entrada" }}
+        defaultValues={{ placa: "", tipoMovimiento: "Entrada", fechaHora: defaultFechaHora, registradoPor: "", esVisitante: "No" } as any}
         title="Registrar Movimiento"
         fields={fields}
       />

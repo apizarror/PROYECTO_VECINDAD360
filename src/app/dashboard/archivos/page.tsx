@@ -196,7 +196,7 @@ export default function ArchivosPage() {
         onClose={() => setForm(null)}
         onSubmit={handleSubmit}
         schema={schema}
-        defaultValues={form?.item || undefined}
+        defaultValues={form?.item as any || undefined}
         title={form?.mode === "create" ? "Nuevo Archivo" : "Editar Archivo"}
         fields={fields}
       />

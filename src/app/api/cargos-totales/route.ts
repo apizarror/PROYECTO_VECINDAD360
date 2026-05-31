@@ -14,10 +14,10 @@ export async function GET() {
     }
 
     const condominioFilter =
-      user.rol === "SUPER_ADMIN" ? {} : { condominioId: user.condominioId };
+      user.rol === "SUPER_ADMIN" ? {} : { condominioId: user.condominioId! };
 
     // Get all inmuebles with their related charges
-    const inmuebles = await prisma.inmueble.findMany({
+    const inmuebles = await (prisma.inmueble as any).findMany({
       where: condominioFilter,
       include: {
         bloque: true,
@@ -30,9 +30,9 @@ export async function GET() {
       orderBy: { numero: "asc" },
     });
 
-    const result = inmuebles.map((inmueble) => {
-      const residente = inmueble.vinculaciones.find((v) => v.rol === "Propietario")?.persona
-        ?? inmueble.vinculaciones[0]?.persona;
+    const result = inmuebles.map((inmueble: any) => {
+      const residente = inmueble.vinculaciones?.find((v: any) => v.rol === "Propietario")?.persona
+        ?? inmueble.vinculaciones?.[0]?.persona;
 
       const cargos: {
         tipo: "Mantenimiento" | "Servicio" | "Multa" | "Reserva";
@@ -75,7 +75,7 @@ export async function GET() {
         inmuebleId: inmueble.id,
         inmuebleLabel: `${inmueble.bloque?.nombre ?? ""} - ${inmueble.numero}`.trim(),
         residenteNombre: residente
-          ? `${residente.nombre} ${residente.apellidos}`
+          ? `${residente.nombres} ${residente.apellidos}`
           : "Sin residente",
         cargos,
         totalCargos,
