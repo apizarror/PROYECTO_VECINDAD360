@@ -74,7 +74,7 @@ export default function MovimientoVehicularPage() {
   const fields = [
     { name: "placa", label: "Placa", type: "text" as const, placeholder: "ABC-123" },
     { name: "tipoMovimiento", label: "Tipo de movimiento", type: "select" as const, options: [{ label: "Entrada", value: "Entrada" }, { label: "Salida", value: "Salida" }] },
-    { name: "fechaHora", label: "Fecha y hora", type: "text" as const, placeholder: "2026-05-30 10:00" },
+    { name: "fechaHora", label: "Fecha y hora", type: "datetime-local" as const },
     { name: "registradoPor", label: "Registrado por", type: "text" as const },
     { name: "observaciones", label: "Observaciones (opcional)", type: "textarea" as const },
     { name: "esVisitante", label: "Es visitante", type: "select" as const, options: [{ label: "No", value: "No" }, { label: "Sí", value: "Sí" }] },
