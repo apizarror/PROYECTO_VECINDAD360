@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
 import { TrialOverlay } from "@/components/dashboard/trial-overlay";
+import { AssistantChat } from "@/components/dashboard/assistant-chat";
 import { useAuth } from "@/hooks/use-auth";
 import { hasAccess, DEFAULT_ROUTE, type Rol } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
@@ -86,6 +87,7 @@ export default function DashboardLayout({
           {children}
         </div>
       </main>
+      <AssistantChat />
     </div>
   );
 }
