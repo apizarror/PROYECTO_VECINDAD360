@@ -7,6 +7,7 @@ import {
   quickReplies,
   type KnowledgeEntry,
 } from "@/lib/assistant-knowledge";
+import { SYNONYMS, STOP_WORDS } from "@/lib/assistant-synonyms";
 import type { Permission } from "@/hooks/use-auth";
 
 // ---------------------------------------------------------------------------
@@ -57,6 +58,59 @@ function levenshtein(a: string, b: string): number {
   return dp[m][n];
 }
 
+/** Simple Spanish stemmer — strips common suffixes. */
+function stem(word: string): string {
+  if (word.length <= 3) return word;
+  return (
+    word.replace(
+      /(amiento|imiento|acion|icion|mente|ando|iendo|arse|erse|irse|ado|ido|ar|er|ir|es|os|as|an|en)$/i,
+      ""
+    ) || word
+  );
+}
+
+/** Remove stop words and very short tokens. */
+function removeStopWords(tokens: string[]): string[] {
+  return tokens.filter((t) => t.length >= 2 && !STOP_WORDS.has(t));
+}
+
+/** Expand query tokens with synonyms from the dictionary. */
+function expandWithSynonyms(tokens: string[]): string[] {
+  const expanded = new Set(tokens);
+
+  for (const token of tokens) {
+    for (const [canonical, syns] of Object.entries(SYNONYMS)) {
+      const normCanonical = normalize(canonical);
+
+      // If token matches a synonym → add the canonical keyword
+      const matchesSynonym = syns.some((s) => {
+        const ns = normalize(s);
+        return ns.includes(token) || token.includes(ns);
+      });
+
+      if (matchesSynonym) {
+        expanded.add(normCanonical);
+        // Also add canonical's parts (for multi-word canonicals like "area comun")
+        for (const part of normCanonical.split(/\s+/)) {
+          if (part.length >= 2) expanded.add(part);
+        }
+      }
+
+      // If token matches the canonical → add all synonym forms
+      if (normCanonical.includes(token) || token.includes(normCanonical)) {
+        for (const s of syns) {
+          const ns = normalize(s);
+          for (const part of ns.split(/\s+/)) {
+            if (part.length >= 2) expanded.add(part);
+          }
+        }
+      }
+    }
+  }
+
+  return Array.from(expanded);
+}
+
 function search(
   query: string,
   entries: KnowledgeEntry[],
@@ -64,12 +118,15 @@ function search(
   userPermissions: Permission[]
 ): string | null {
   const normalizedQuery = normalize(query);
-  const tokens = normalizedQuery.split(/\s+/).filter(Boolean);
+  const rawTokens = normalizedQuery.split(/\s+/).filter((t) => t.length >= 2);
+  const meaningfulTokens = removeStopWords(rawTokens);
+  const expandedTokens = expandWithSynonyms(
+    meaningfulTokens.length > 0 ? meaningfulTokens : rawTokens
+  );
+  const stemmedTokens = expandedTokens.map(stem);
 
   const filtered = entries.filter((e) => {
-    // Role check
     if (e.rol !== "todos" && e.rol !== userRol) return false;
-    // Permission check (SUPER_ADMIN skips module check)
     if (e.modulo && userRol !== "SUPER_ADMIN") {
       const hasPerm = userPermissions.some(
         (p) => p.modulo === e.modulo && p.leer
@@ -83,22 +140,65 @@ function search(
 
   for (const entry of filtered) {
     let score = 0;
+
     for (const keyword of entry.keywords) {
-      const normalizedKeyword = normalize(keyword);
-      // Full phrase match
-      if (normalizedQuery.includes(normalizedKeyword)) score += 10;
-      // Token-level matching
-      for (const token of tokens) {
-        if (normalizedKeyword.includes(token) || token.includes(normalizedKeyword))
-          score += 3;
-        if (token.length >= 3 && levenshtein(token, normalizedKeyword) <= 2)
-          score += 2;
+      const nk = normalize(keyword);
+
+      // 1. Full phrase match in query
+      if (normalizedQuery.includes(nk)) {
+        score += 15;
+        continue;
+      }
+
+      // 2. Keyword appears in expanded query as full phrase
+      const expandedStr = expandedTokens.join(" ");
+      if (expandedStr.includes(nk)) {
+        score += 12;
+        continue;
+      }
+
+      const kwParts = nk.split(/\s+/).filter((p) => p.length >= 2);
+
+      for (const token of expandedTokens) {
+        // 3. Token matches keyword part exactly
+        for (const kp of kwParts) {
+          if (token === kp) score += 5;
+          else if (kp.includes(token) || token.includes(kp)) score += 4;
+        }
+      }
+
+      // 4. Stemmed matching
+      const stemmedKwParts = kwParts.map(stem);
+      for (const st of stemmedTokens) {
+        for (const skp of stemmedKwParts) {
+          if (st === skp && st.length >= 3) score += 4;
+        }
+      }
+
+      // 5. Fuzzy (Levenshtein) on longer tokens
+      for (const token of expandedTokens) {
+        if (token.length < 4) continue;
+        for (const kp of kwParts) {
+          if (kp.length < 4) continue;
+          if (levenshtein(token, kp) <= 2) score += 3;
+        }
       }
     }
+
+    // 6. Fallback: search in answer text
+    if (score < 5) {
+      const normalizedAnswer = normalize(entry.answer);
+      for (const token of expandedTokens) {
+        if (token.length >= 3 && normalizedAnswer.includes(token)) {
+          score += 1;
+        }
+      }
+    }
+
     if (score > best.score) best = { score, answer: entry.answer };
   }
 
-  return best.score >= 3 ? best.answer : null;
+  return best.score >= 5 ? best.answer : null;
 }
 
 function uid(): string {
