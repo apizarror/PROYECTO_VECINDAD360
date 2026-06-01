@@ -25,6 +25,8 @@ const schema = z.object({
   estado: z.enum(["Abierta", "En proceso", "Resuelta", "Cerrada"]),
 });
 
+const today = new Date().toISOString().slice(0, 10);
+
 export default function IncidenciasPage() {
   const { data: items = [], isLoading } = useApiList<Incidencia>("incidencias");
   const createMutation = useApiCreate<Incidencia>("incidencias");
@@ -81,7 +83,7 @@ export default function IncidenciasPage() {
     { name: "categoria", label: "Categoría", type: "text" as const },
     { name: "reportadaPor", label: "Reportada por", type: "text" as const },
     { name: "asignadaA", label: "Asignada a", type: "text" as const },
-    { name: "fechaReporte", label: "Fecha de reporte", type: "text" as const },
+    { name: "fechaReporte", label: "Fecha de reporte", type: "date" as const },
     {
       name: "estado",
       label: "Estado",
@@ -247,7 +249,7 @@ export default function IncidenciasPage() {
         onClose={() => setForm(null)}
         onSubmit={handleSubmit}
         schema={schema}
-        defaultValues={form?.item || undefined}
+        defaultValues={form?.mode === "edit" ? form.item : { fechaReporte: today }}
         title={form?.mode === "create" ? "Reportar Incidencia" : "Editar Incidencia"}
         fields={fields}
       />

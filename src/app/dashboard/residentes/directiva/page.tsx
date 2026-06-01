@@ -38,6 +38,9 @@ const cargoIcons: Record<string, string> = {
   Vocal: "\u{1F3A4}",
 };
 
+const today = new Date().toISOString().slice(0, 10);
+const in2Years = new Date(Date.now() + 730 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
 export default function DirectivaPage() {
   const { data: items = [], isLoading } = useApiList<MiembroDirectivaWithRelations>("directiva");
   const createMutation = useApiCreate<MiembroDirectivaWithRelations>("directiva");
@@ -78,8 +81,8 @@ export default function DirectivaPage() {
   const fields = [
     { name: "personaId", label: "Residente", type: "select" as const, options: residentes.filter(r => r.activo).map(r => ({ label: `${r.nombres} ${r.apellidos}`, value: r.id })) },
     { name: "cargo", label: "Cargo", type: "select" as const, options: ["Presidente", "Vicepresidente", "Tesorero", "Secretario", "Vocal"].map(c => ({ label: c, value: c })) },
-    { name: "fechaInicio", label: "Fecha inicio", type: "text" as const, placeholder: "2026-01-01" },
-    { name: "fechaFin", label: "Fecha fin", type: "text" as const, placeholder: "2027-12-31" },
+    { name: "fechaInicio", label: "Fecha inicio", type: "date" as const },
+    { name: "fechaFin", label: "Fecha fin", type: "date" as const },
     { name: "estado", label: "Estado", type: "select" as const, options: [{ label: "Activo", value: "Activo" }, { label: "Historico", value: "Historico" }] },
   ];
 
@@ -154,7 +157,7 @@ export default function DirectivaPage() {
         onClose={() => setForm(null)}
         onSubmit={handleSubmit}
         schema={directivaSchema}
-        defaultValues={form?.item || undefined}
+        defaultValues={form?.mode === "edit" ? form.item : { fechaInicio: today, fechaFin: in2Years }}
         title={form?.mode === "create" ? "Nuevo Miembro" : "Editar Miembro"}
         fields={fields}
       />

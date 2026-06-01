@@ -42,6 +42,8 @@ const schema = z.object({
   registradoPor: z.string().min(1),
 });
 
+const today = new Date().toISOString().slice(0, 10);
+
 export default function EgresosPage() {
   const { data: items = [], isLoading } = useApiList<EgresoWithRelations>("egresos");
   const createMutation = useApiCreate<EgresoWithRelations>("egresos");
@@ -84,8 +86,8 @@ export default function EgresosPage() {
     { name: "proveedor", label: "Proveedor", type: "text" as const },
     { name: "cuentaBancariaId", label: "Cuenta bancaria", type: "select" as const, options: cuentasBancarias.map(c => ({ label: `${c.banco} - ${c.tipo}`, value: c.id })) },
     { name: "metodoPago", label: "Metodo de pago", type: "select" as const, options: ["Efectivo", "Transferencia", "Yape", "Plin", "Cheque"].map(m => ({ label: m, value: m })) },
-    { name: "fechaRegistro", label: "Fecha de registro", type: "text" as const },
-    { name: "fechaPago", label: "Fecha de pago", type: "text" as const },
+    { name: "fechaRegistro", label: "Fecha de registro", type: "date" as const },
+    { name: "fechaPago", label: "Fecha de pago", type: "date" as const },
     { name: "descripcion", label: "Descripcion", type: "textarea" as const },
     { name: "registradoPor", label: "Registrado por", type: "text" as const },
     { name: "estado", label: "Estado", type: "select" as const, options: ["Pendiente", "Pagado", "Anulado"].map(e => ({ label: e, value: e })) },
@@ -171,7 +173,7 @@ export default function EgresosPage() {
       </div>
 
       <FormDrawer open={form !== null} onClose={() => setForm(null)} onSubmit={handleSubmit} schema={schema}
-        defaultValues={form?.item || undefined} title={form?.mode === "create" ? "Registrar Egreso" : "Editar Egreso"} fields={fields} />
+        defaultValues={form?.mode === "edit" ? form.item : { fechaRegistro: today }} title={form?.mode === "create" ? "Registrar Egreso" : "Editar Egreso"} fields={fields} />
       <ConfirmDialog open={deleteTarget !== null} onClose={() => setDeleteTarget(null)}
         onConfirm={async () => { if (deleteTarget) await deleteMutation.mutateAsync(deleteTarget.id); setDeleteTarget(null); }}
         title="Eliminar egreso" message={`Eliminar "${deleteTarget?.concepto}"?`} />

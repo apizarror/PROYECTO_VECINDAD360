@@ -10,7 +10,7 @@ import type { ZodSchema, z } from "zod";
 interface Field {
   name: string;
   label: string;
-  type: "text" | "number" | "select" | "textarea";
+  type: "text" | "number" | "select" | "textarea" | "date" | "datetime-local" | "month";
   placeholder?: string;
   options?: { label: string; value: string }[];
 }

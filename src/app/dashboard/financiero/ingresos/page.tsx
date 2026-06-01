@@ -41,6 +41,8 @@ const schema = z.object({
   registradoPor: z.string().min(1),
 });
 
+const today = new Date().toISOString().slice(0, 10);
+
 export default function IngresosPage() {
   const { data: items = [], isLoading } = useApiList<IngresoWithRelations>("ingresos");
   const createMutation = useApiCreate<IngresoWithRelations>("ingresos");
@@ -87,7 +89,7 @@ export default function IngresosPage() {
     { name: "personaId", label: "Residente (opcional)", type: "select" as const, options: [{ label: "— Ninguno —", value: "" }, ...personas.map(p => ({ label: `${p.nombres} ${p.apellidos}`, value: p.id }))] },
     { name: "cuentaBancariaId", label: "Cuenta bancaria", type: "select" as const, options: cuentasBancarias.map(c => ({ label: `${c.banco} - ${c.tipo}`, value: c.id })) },
     { name: "metodoPago", label: "Metodo de pago", type: "select" as const, options: ["Efectivo", "Transferencia", "Yape", "Plin", "Tarjeta"].map(m => ({ label: m, value: m })) },
-    { name: "fecha", label: "Fecha", type: "text" as const },
+    { name: "fecha", label: "Fecha", type: "date" as const },
     { name: "registradoPor", label: "Registrado por", type: "text" as const },
     { name: "estado", label: "Estado", type: "select" as const, options: ["Confirmado", "Pendiente", "Anulado"].map(e => ({ label: e, value: e })) },
   ];
@@ -173,7 +175,7 @@ export default function IngresosPage() {
       </div>
 
       <FormDrawer open={form !== null} onClose={() => setForm(null)} onSubmit={handleSubmit} schema={schema}
-        defaultValues={form?.item || undefined} title={form?.mode === "create" ? "Registrar Ingreso" : "Editar Ingreso"} fields={fields} />
+        defaultValues={form?.mode === "edit" ? form.item : { fecha: today }} title={form?.mode === "create" ? "Registrar Ingreso" : "Editar Ingreso"} fields={fields} />
       <ConfirmDialog open={deleteTarget !== null} onClose={() => setDeleteTarget(null)}
         onConfirm={async () => { if (deleteTarget) await deleteMutation.mutateAsync(deleteTarget.id); setDeleteTarget(null); }}
         title="Eliminar ingreso" message={`Eliminar "${deleteTarget?.concepto}"?`} />

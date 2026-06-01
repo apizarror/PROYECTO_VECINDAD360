@@ -50,6 +50,9 @@ const motivoLabels: Record<string, string> = {
 
 const estados = ["Todas", "Pendiente", "Pagada", "Anulada", "Vencida"] as const;
 
+const today = new Date().toISOString().slice(0, 10);
+const in30Days = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
 export default function MultasPage() {
   const { data: items = [], isLoading } = useApiList<MultaWithRelations>("multas");
   const createMutation = useApiCreate<MultaWithRelations>("multas");
@@ -111,8 +114,8 @@ export default function MultasPage() {
     { name: "motivo", label: "Motivo", type: "select" as const, options: Object.entries(motivoLabels).map(([k, v]) => ({ label: v, value: k })) },
     { name: "descripcion", label: "Descripcion", type: "textarea" as const, placeholder: "Describe la infraccion..." },
     { name: "monto", label: "Monto (S/)", type: "number" as const },
-    { name: "fechaEmision", label: "Fecha de emision", type: "text" as const, placeholder: "2026-05-01" },
-    { name: "fechaVencimiento", label: "Fecha de vencimiento", type: "text" as const, placeholder: "2026-06-01" },
+    { name: "fechaEmision", label: "Fecha de emision", type: "date" as const },
+    { name: "fechaVencimiento", label: "Fecha de vencimiento", type: "date" as const },
     { name: "aplicadoPor", label: "Aplicada por", type: "text" as const, placeholder: "Administracion" },
     { name: "estado", label: "Estado", type: "select" as const, options: ["Pendiente", "Pagada", "Anulada", "Vencida"].map(s => ({ label: s, value: s })) },
   ];
@@ -245,7 +248,7 @@ export default function MultasPage() {
         onClose={() => setForm(null)}
         onSubmit={handleSubmit}
         schema={multaSchema}
-        defaultValues={form?.item || undefined}
+        defaultValues={form?.mode === "edit" ? form.item : { fechaEmision: today, fechaVencimiento: in30Days }}
         title={form?.mode === "create" ? "Emitir Multa" : "Editar Multa"}
         fields={fields}
       />

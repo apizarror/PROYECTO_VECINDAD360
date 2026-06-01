@@ -38,6 +38,8 @@ const schema = z.object({
   url: z.string().optional(),
 });
 
+const today = new Date().toISOString().slice(0, 10);
+
 export default function ArchivosPage() {
   const { data: archivos = [], isLoading } = useApiList<Archivo>("archivos");
   const createMutation = useApiCreate<Archivo>("archivos");
@@ -88,7 +90,7 @@ export default function ArchivosPage() {
     { name: "formato", label: "Formato", type: "select" as const, options: ["PDF", "Word", "Excel", "Imagen"].map(f => ({ label: f, value: f })) },
     { name: "visibilidad", label: "Visibilidad", type: "select" as const, options: [{ label: "Publico", value: "Público" }, { label: "Solo Administradores", value: "Solo Administradores" }] },
     { name: "subidoPor", label: "Subido por", type: "text" as const },
-    { name: "fecha", label: "Fecha", type: "text" as const, placeholder: "2026-05-30" },
+    { name: "fecha", label: "Fecha", type: "date" as const },
     { name: "url", label: "URL (opcional)", type: "text" as const, placeholder: "https://..." },
   ];
 
@@ -196,7 +198,7 @@ export default function ArchivosPage() {
         onClose={() => setForm(null)}
         onSubmit={handleSubmit}
         schema={schema}
-        defaultValues={form?.item as any || undefined}
+        defaultValues={form?.mode === "edit" ? form.item as any : { fecha: today }}
         title={form?.mode === "create" ? "Nuevo Archivo" : "Editar Archivo"}
         fields={fields}
       />

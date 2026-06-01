@@ -26,6 +26,10 @@ const cuotaSchema = z.object({
   totalCobrado: z.number().default(0),
 });
 
+const today = new Date().toISOString().slice(0, 10);
+const currentMonth = new Date().toISOString().slice(0, 7);
+const in20Days = new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
 export default function CuotasPage() {
   const { data: items = [], isLoading } = useApiList<CuotaMantenimiento>("cuotas");
   const createMutation = useApiCreate<CuotaMantenimiento>("cuotas");
@@ -63,12 +67,12 @@ export default function CuotasPage() {
   );
 
   const fields = [
-    { name: "periodo", label: "Periodo (YYYY-MM)", type: "text" as const, placeholder: "2026-06" },
+    { name: "periodo", label: "Periodo", type: "month" as const },
     { name: "tipo", label: "Tipo", type: "select" as const, options: [{ label: "Ordinaria", value: "Ordinaria" }, { label: "Extraordinaria", value: "Extraordinaria" }] },
     { name: "montoBase", label: "Monto base (S/)", type: "number" as const },
     { name: "criterio", label: "Criterio", type: "select" as const, options: ["Igual", "Alícuota", "Personalizado"].map((c) => ({ label: c, value: c })) },
-    { name: "fechaEmision", label: "Fecha de emisión", type: "text" as const, placeholder: "2026-06-01" },
-    { name: "fechaVencimiento", label: "Fecha de vencimiento", type: "text" as const, placeholder: "2026-06-20" },
+    { name: "fechaEmision", label: "Fecha de emisión", type: "date" as const },
+    { name: "fechaVencimiento", label: "Fecha de vencimiento", type: "date" as const },
     { name: "moraDiaria", label: "Mora diaria (%)", type: "number" as const },
   ];
 
@@ -182,7 +186,7 @@ export default function CuotasPage() {
         onClose={() => setForm(null)}
         onSubmit={handleSubmit}
         schema={cuotaSchema}
-        defaultValues={form?.item || undefined}
+        defaultValues={form?.mode === "edit" ? form.item : { periodo: currentMonth, fechaEmision: today, fechaVencimiento: in20Days }}
         title={form?.mode === "create" ? "Nueva Cuota" : "Editar Cuota"}
         fields={fields}
       />

@@ -51,6 +51,8 @@ const schema = z.object({
 const periodos = ["Todos", "2026-05", "2026-04", "2026-03"];
 const servicios = ["Todos", "Agua", "Luz Áreas Comunes", "Gas"];
 
+const currentMonth = new Date().toISOString().slice(0, 7);
+
 export default function CargosServicioPage() {
   const { user } = useAuth();
   const { data: cargosServicio = [], isLoading } = useApiList<CargoServicio>("cargos-servicio");
@@ -102,7 +104,7 @@ export default function CargosServicioPage() {
       type: "select" as const,
       options: ["Agua", "Luz Áreas Comunes", "Gas"].map((s) => ({ label: s, value: s })),
     },
-    { name: "periodo", label: "Periodo (YYYY-MM)", type: "text" as const, placeholder: "2026-05" },
+    { name: "periodo", label: "Periodo", type: "month" as const },
     { name: "lecturaAnterior", label: "Lectura Anterior", type: "number" as const },
     { name: "lecturaActual", label: "Lectura Actual", type: "number" as const },
     { name: "consumo", label: "Consumo (auto: actual - anterior)", type: "number" as const },
@@ -229,7 +231,7 @@ export default function CargosServicioPage() {
         onClose={() => setForm(null)}
         onSubmit={handleSubmit}
         schema={schema}
-        defaultValues={(form?.item as unknown as z.infer<typeof schema>) || undefined}
+        defaultValues={form?.mode === "edit" ? (form.item as unknown as z.infer<typeof schema>) : { periodo: currentMonth }}
         title={form?.mode === "create" ? "Nuevo Cargo de Servicio" : "Editar Cargo de Servicio"}
         fields={fields}
       />

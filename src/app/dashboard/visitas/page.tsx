@@ -24,6 +24,8 @@ const schema = z.object({
   vehiculoPlaca: z.string().optional(),
 });
 
+const nowDatetime = new Date().toISOString().slice(0, 16);
+
 export default function VisitasPage() {
   const { data: items = [], isLoading } = useApiList<Visita>("visitas");
   const createMutation = useApiCreate<Visita>("visitas");
@@ -76,7 +78,7 @@ export default function VisitasPage() {
     { name: "inmuebleId", label: "Inmueble destino", type: "select" as const, options: inmuebles.map(i => ({ label: i.numero, value: i.id })) },
     { name: "personaId", label: "Residente anfitrión", type: "select" as const, options: residentes.filter(r => r.activo).map(r => ({ label: `${r.nombres} ${r.apellidos}`, value: r.id })) },
     { name: "motivo", label: "Motivo de visita", type: "text" as const },
-    { name: "fechaHoraIngreso", label: "Fecha/Hora ingreso", type: "text" as const, placeholder: "2026-05-05 10:00" },
+    { name: "fechaHoraIngreso", label: "Fecha/Hora ingreso", type: "datetime-local" as const },
     { name: "vehiculoPlaca", label: "Placa vehículo (opcional)", type: "text" as const },
     { name: "estado", label: "Estado", type: "select" as const, options: ["Activa", "Programada", "Completada", "Rechazada"].map(e => ({ label: e, value: e })) },
   ];
@@ -176,7 +178,7 @@ export default function VisitasPage() {
       </div>
 
       <FormDrawer open={form !== null} onClose={() => setForm(null)} onSubmit={handleSubmit} schema={schema}
-        defaultValues={form?.item || undefined} title={form?.mode === "create" ? "Registrar Visita" : "Editar Visita"} fields={fields} />
+        defaultValues={form?.mode === "edit" ? form.item : { fechaHoraIngreso: nowDatetime }} title={form?.mode === "create" ? "Registrar Visita" : "Editar Visita"} fields={fields} />
       <ConfirmDialog open={deleteTarget !== null} onClose={() => setDeleteTarget(null)}
         onConfirm={async () => { if (deleteTarget) await deleteMutation.mutateAsync(deleteTarget.id); setDeleteTarget(null); }}
         title="Eliminar visita" message={`¿Eliminar visita de "${deleteTarget?.visitanteNombre}"?`} />

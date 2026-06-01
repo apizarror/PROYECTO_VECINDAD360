@@ -40,6 +40,8 @@ const schema = z.object({
   observaciones: z.string().optional(),
 });
 
+const today = new Date().toISOString().slice(0, 10);
+
 export default function ReservasPage() {
   const { data: items = [], isLoading } = useApiList<ReservaWithRelations>("reservas");
   const createMutation = useApiCreate<ReservaWithRelations>("reservas");
@@ -83,7 +85,7 @@ export default function ReservasPage() {
   const fields = [
     { name: "areaComunId", label: "Area comun", type: "select" as const, options: areasComunes.filter(a => a.estado === "Activa").map(a => ({ label: a.nombre, value: a.id })) },
     { name: "personaId", label: "Residente", type: "select" as const, options: residentes.filter(r => r.activo).map(r => ({ label: `${r.nombres} ${r.apellidos}`, value: r.id })) },
-    { name: "fecha", label: "Fecha", type: "text" as const, placeholder: "2026-05-20" },
+    { name: "fecha", label: "Fecha", type: "date" as const },
     { name: "horaInicio", label: "Hora inicio", type: "text" as const, placeholder: "18:00" },
     { name: "horaFin", label: "Hora fin", type: "text" as const, placeholder: "22:00" },
     { name: "costoTotal", label: "Costo total (S/)", type: "number" as const },
@@ -166,7 +168,7 @@ export default function ReservasPage() {
       </div>
 
       <FormDrawer open={form !== null} onClose={() => setForm(null)} onSubmit={handleSubmit} schema={schema}
-        defaultValues={form?.item || undefined} title={form?.mode === "create" ? "Nueva Reserva" : "Editar Reserva"} fields={fields} />
+        defaultValues={form?.mode === "edit" ? form.item : { fecha: today }} title={form?.mode === "create" ? "Nueva Reserva" : "Editar Reserva"} fields={fields} />
       <ConfirmDialog open={deleteTarget !== null} onClose={() => setDeleteTarget(null)}
         onConfirm={async () => { if (deleteTarget) await deleteMutation.mutateAsync(deleteTarget.id); setDeleteTarget(null); }}
         title="Eliminar reserva" message={`Eliminar reserva de "${deleteTarget ? getResidenteNombre(deleteTarget) : ""}"?`} />

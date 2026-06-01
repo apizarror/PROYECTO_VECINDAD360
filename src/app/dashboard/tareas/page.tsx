@@ -22,6 +22,8 @@ const schema = z.object({
   estado: z.enum(["Pendiente", "En progreso", "Completada", "Vencida"]),
 });
 
+const today = new Date().toISOString().slice(0, 10);
+
 export default function TareasPage() {
   const { data: items = [], isLoading } = useApiList<TareaProgramada>("tareas");
   const createMutation = useApiCreate<TareaProgramada>("tareas");
@@ -65,7 +67,7 @@ export default function TareasPage() {
       type: "select" as const,
       options: ["Diaria", "Semanal", "Mensual", "Cron"].map((f) => ({ label: f, value: f })),
     },
-    { name: "proximaEjecucion", label: "Próxima ejecución", type: "text" as const },
+    { name: "proximaEjecucion", label: "Próxima ejecución", type: "date" as const },
     {
       name: "estado",
       label: "Estado",
@@ -203,7 +205,7 @@ export default function TareasPage() {
         onClose={() => setForm(null)}
         onSubmit={handleSubmit}
         schema={schema}
-        defaultValues={form?.item || undefined}
+        defaultValues={form?.mode === "edit" ? form.item : { proximaEjecucion: today }}
         title={form?.mode === "create" ? "Nueva Tarea" : "Editar Tarea"}
         fields={fields}
       />

@@ -26,6 +26,8 @@ const schema = z.object({
   estado: z.enum(["Activo", "Inactivo"]),
 });
 
+const today = new Date().toISOString().slice(0, 10);
+
 export default function EmpleadosPage() {
   const { data: items = [], isLoading } = useApiList<Empleado>("empleados");
   const createMutation = useApiCreate<Empleado>("empleados");
@@ -84,7 +86,7 @@ export default function EmpleadosPage() {
         value: t,
       })),
     },
-    { name: "fechaIngreso", label: "Fecha de ingreso", type: "text" as const },
+    { name: "fechaIngreso", label: "Fecha de ingreso", type: "date" as const },
     { name: "salario", label: "Salario (S/)", type: "number" as const },
     { name: "telefono", label: "Teléfono", type: "text" as const },
     { name: "email", label: "Email", type: "text" as const },
@@ -238,7 +240,7 @@ export default function EmpleadosPage() {
         onClose={() => setForm(null)}
         onSubmit={handleSubmit}
         schema={schema}
-        defaultValues={form?.item || undefined}
+        defaultValues={form?.mode === "edit" ? form.item : { fechaIngreso: today }}
         title={form?.mode === "create" ? "Nuevo Empleado" : "Editar Empleado"}
         fields={fields}
       />
