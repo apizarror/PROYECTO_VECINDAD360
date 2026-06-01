@@ -74,7 +74,7 @@ export default function DispositivosPage() {
         .filter((e) => e.estado === "Activo")
         .map((e) => ({ label: `${e.nombres} ${e.apellidos}`, value: e.id })),
     },
-    { name: "fechaAsignacion", label: "Fecha de asignacion", type: "text" as const },
+    { name: "fechaAsignacion", label: "Fecha de asignacion", type: "date" as const },
     {
       name: "estado",
       label: "Estado",
@@ -166,7 +166,7 @@ export default function DispositivosPage() {
         onClose={() => setForm(null)}
         onSubmit={handleSubmit}
         schema={schema}
-        defaultValues={form?.item || undefined}
+        defaultValues={form?.mode === "edit" ? form.item : { fechaAsignacion: new Date().toISOString().slice(0, 10) }}
         title={form?.mode === "create" ? "Nuevo Dispositivo" : "Editar Dispositivo"}
         fields={fields}
       />

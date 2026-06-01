@@ -107,8 +107,8 @@ export default function HorariosPage() {
       type: "select" as const,
       options: dias.map((d) => ({ label: d, value: d })),
     },
-    { name: "horaInicio", label: "Hora Inicio", type: "text" as const, placeholder: "08:00" },
-    { name: "horaFin", label: "Hora Fin", type: "text" as const, placeholder: "16:00" },
+    { name: "horaInicio", label: "Hora Inicio", type: "time" as const },
+    { name: "horaFin", label: "Hora Fin", type: "time" as const },
     {
       name: "tipoTurno",
       label: "Tipo de Turno",
